@@ -94,10 +94,15 @@ class Order(models.Model):
         ('failed', 'Failed'),
         ('refunded', 'Refunded'),
     )
+    PAYMENT_METHOD_CHOICES = (
+        ('online', 'Online Payment'),
+        ('cod', 'Cash on Delivery'),
+    )
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='orders')
     order_number = models.CharField(max_length=20, unique=True, blank=True)
     order_status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    payment_method = models.CharField(max_length=10, choices=PAYMENT_METHOD_CHOICES, default='online')
     payment_status = models.CharField(max_length=10, choices=PAYMENT_STATUS_CHOICES, default='pending')
     coupon = models.ForeignKey(Coupon, on_delete=models.SET_NULL, null=True, blank=True)
     subtotal = models.DecimalField(max_digits=12, decimal_places=2, default=0)

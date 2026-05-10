@@ -42,6 +42,7 @@ class CreateRazorpayOrderView(APIView):
         order.save()
 
         return Response({
+            'razorpay_key_id': settings.RAZORPAY_KEY_ID,
             'razorpay_order_id': razorpay_order['id'],
             'amount': amount_paise,
             'currency': 'INR',

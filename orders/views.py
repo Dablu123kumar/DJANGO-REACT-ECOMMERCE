@@ -97,6 +97,7 @@ class OrderPlaceView(APIView):
 
         shipping_address = request.data.get('shipping_address', {})
         coupon_code = request.data.get('coupon_code', '').upper()
+        payment_method = request.data.get('payment_method', 'online')
 
         subtotal = cart.subtotal
         discount = 0
@@ -124,6 +125,7 @@ class OrderPlaceView(APIView):
             shipping_charge=shipping_charge,
             total_price=total,
             shipping_address=shipping_address,
+            payment_method=payment_method,
         )
 
         for item in cart.items.all():

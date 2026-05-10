@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { MapPin, Tag, CreditCard, Loader2, CheckCircle } from 'lucide-react';
+import { MapPin, Tag, CreditCard, Loader2, CheckCircle, Trash2, Edit2 } from 'lucide-react';
 import { placeOrder, validateCoupon, clearCoupon } from '../redux/slices/orderSlice';
 import { fetchCart } from '../redux/slices/cartSlice';
 import toast from 'react-hot-toast';
@@ -31,6 +31,8 @@ export default function Checkout() {
   const [selectedAddressId, setSelectedAddressId] = useState('new');
   const [saveNewAddress, setSaveNewAddress] = useState(false);
   const [loadingAddresses, setLoadingAddresses] = useState(true);
+  const [editingAddressId, setEditingAddressId] = useState(null);
+  const [paymentMethod, setPaymentMethod] = useState('online');
 
   useEffect(() => {
     if (!user) { navigate('/login'); return; }
@@ -40,9 +42,10 @@ export default function Checkout() {
     // Fetch saved addresses
     api.get('/auth/addresses/')
       .then(res => {
-        setSavedAddresses(res.data);
-        if (res.data.length > 0) {
-          const defaultAddr = res.data.find(a => a.is_default) || res.data[0];
+        const addressList = res.data.results || res.data;
+        setSavedAddresses(addressList);
+        if (addressList.length > 0) {
+          const defaultAddr = addressList.find(a => a.is_default) || addressList[0];
           setSelectedAddressId(defaultAddr.id);
         }
       })
@@ -81,7 +84,7 @@ export default function Checkout() {
       const payData = res.data;
       if (!window.Razorpay) { toast.error('Payment gateway not loaded.'); return; }
       const rzp = new window.Razorpay({
-        key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+        key: payData.razorpay_key_id,
         amount: payData.amount,
         currency: payData.currency,
         name: 'ShopElite',
@@ -108,6 +111,71 @@ export default function Checkout() {
     }
   };
 
+  const handleDeleteAddress = async (e, id) => {
+    e.stopPropagation();
+    if (!window.confirm('Are you sure you want to delete this address?')) return;
+    try {
+      await api.delete(`/auth/addresses/${id}/`);
+      const newAddrs = savedAddresses.filter(a => a.id !== id);
+      setSavedAddresses(newAddrs);
+      if (selectedAddressId === id) setSelectedAddressId(newAddrs.length > 0 ? newAddrs[0].id : 'new');
+      toast.success('Address deleted');
+    } catch (err) {
+      toast.error('Failed to delete address');
+    }
+  };
+
+  const handleEditAddress = (e, addr) => {
+    e.stopPropagation();
+    setAddress({
+      full_name: addr.full_name,
+      phone: addr.phone,
+      address_line1: addr.address_line1,
+      address_line2: addr.address_line2,
+      city: addr.city,
+      state: addr.state,
+      pincode: addr.pincode,
+      country: addr.country,
+    });
+    setEditingAddressId(addr.id);
+    setSelectedAddressId('new');
+  };
+
+  const handleContinueToReview = async () => {
+    if (selectedAddressId === 'new') {
+      const required = ['full_name', 'phone', 'address_line1', 'city', 'state', 'pincode'];
+      for (const f of required) {
+        if (!address[f]) { toast.error(`Please fill in ${f.replace('_', ' ')}`); return; }
+      }
+      
+      if (editingAddressId) {
+        try {
+          const res = await api.put(`/auth/addresses/${editingAddressId}/`, address);
+          const updated = savedAddresses.map(a => a.id === editingAddressId ? res.data : a);
+          setSavedAddresses(updated);
+          setSelectedAddressId(res.data.id);
+          setEditingAddressId(null);
+          toast.success('Address updated!');
+        } catch (err) {
+          toast.error('Failed to update address');
+          return;
+        }
+      } else if (saveNewAddress) {
+        try {
+          const res = await api.post('/auth/addresses/', { ...address, is_default: savedAddresses.length === 0 });
+          setSavedAddresses([...savedAddresses, res.data]);
+          setSelectedAddressId(res.data.id);
+          setSaveNewAddress(false);
+          toast.success('Address saved to profile!');
+        } catch (err) {
+          console.error('Failed to save address', err);
+          toast.error('Failed to save address');
+        }
+      }
+    }
+    setStep(2);
+  };
+
   const handlePlaceOrder = async () => {
     let finalAddress = address;
 
@@ -129,18 +197,21 @@ export default function Checkout() {
       for (const f of required) {
         if (!address[f]) { toast.error(`Please fill in ${f.replace('_', ' ')}`); return; }
       }
-      if (saveNewAddress) {
-        try {
-          await api.post('/auth/addresses/', { ...address, is_default: savedAddresses.length === 0 });
-        } catch (err) {
-          console.error('Failed to save address', err);
-        }
-      }
     }
 
     try {
-      const order = await dispatch(placeOrder({ shipping_address: finalAddress, coupon_code: couponCode })).unwrap();
-      await handleRazorpayPayment(order);
+      const order = await dispatch(placeOrder({ 
+        shipping_address: finalAddress, 
+        coupon_code: couponCode,
+        payment_method: paymentMethod
+      })).unwrap();
+      
+      if (paymentMethod === 'online') {
+        await handleRazorpayPayment(order);
+      } else {
+        toast.success('Order successfully placed! 🎉');
+        navigate(`/orders/${order.id}?success=true`);
+      }
     } catch (err) {
       toast.error(err?.error || 'Could not place order');
     }
@@ -188,15 +259,29 @@ export default function Checkout() {
                               selectedAddressId === addr.id ? 'border-primary-500 bg-primary-900/10' : 'border-dark-700 hover:border-dark-500 bg-dark-800'
                             }`}>
                             <div className="flex justify-between items-start mb-2">
-                              <h4 className="font-semibold text-white">{addr.full_name}</h4>
-                              {addr.is_default && <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-dark-700 text-dark-300">DEFAULT</span>}
+                              <div>
+                                <h4 className="font-semibold text-white inline-block">{addr.full_name}</h4>
+                                {addr.is_default && <span className="ml-2 px-2 py-0.5 rounded text-[10px] font-bold bg-dark-700 text-dark-300">DEFAULT</span>}
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <button onClick={(e) => handleEditAddress(e, addr)} className="text-dark-400 hover:text-primary-400 transition-colors">
+                                  <Edit2 className="w-4 h-4" />
+                                </button>
+                                <button onClick={(e) => handleDeleteAddress(e, addr.id)} className="text-dark-400 hover:text-red-400 transition-colors">
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </div>
                             </div>
                             <p className="text-sm text-dark-300">{addr.phone}</p>
                             <p className="text-sm text-dark-400 mt-1">{addr.address_line1}</p>
                             <p className="text-sm text-dark-400">{addr.city}, {addr.state} {addr.pincode}</p>
                           </div>
                         ))}
-                        <div onClick={() => setSelectedAddressId('new')}
+                        <div onClick={() => {
+                          setSelectedAddressId('new');
+                          setEditingAddressId(null);
+                          setAddress({ full_name: user?.full_name || '', phone: user?.phone || '', address_line1: '', address_line2: '', city: '', state: '', pincode: '', country: 'India' });
+                        }}
                           className={`p-4 rounded-xl border-2 cursor-pointer transition-all flex flex-col items-center justify-center text-dark-400 hover:text-white ${
                             selectedAddressId === 'new' ? 'border-primary-500 text-primary-400 bg-primary-900/10' : 'border-dark-700 border-dashed hover:border-dark-500 bg-dark-800'
                           }`}>
@@ -208,7 +293,12 @@ export default function Checkout() {
 
                     {selectedAddressId === 'new' && (
                       <div className="space-y-4 animate-fade-in border-t border-dark-700 pt-6 mt-6">
-                        <h3 className="font-medium text-white mb-2">Enter New Address</h3>
+                        <div className="flex justify-between items-center mb-2">
+                          <h3 className="font-medium text-white">{editingAddressId ? 'Edit Address' : 'Enter New Address'}</h3>
+                          {editingAddressId && (
+                            <button onClick={() => { setEditingAddressId(null); setSelectedAddressId(savedAddresses[0]?.id || 'new'); }} className="text-sm text-dark-400 hover:text-white">Cancel Edit</button>
+                          )}
+                        </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                           {[['full_name','Full Name *','John Doe'],['phone','Phone *','+91 9876543210']].map(([name,label,ph]) => (
                             <div key={name}>
@@ -231,22 +321,24 @@ export default function Checkout() {
                             </div>
                           ))}
                         </div>
-                        <div className="pt-2">
-                          <label className="flex items-center gap-3 cursor-pointer group">
-                            <div className="relative flex items-center justify-center">
-                              <input type="checkbox" checked={saveNewAddress} onChange={(e) => setSaveNewAddress(e.target.checked)} className="peer sr-only" />
-                              <div className="w-5 h-5 border-2 border-dark-600 rounded bg-dark-800 peer-checked:bg-primary-600 peer-checked:border-primary-600 transition-colors"></div>
-                              <CheckCircle className="w-3.5 h-3.5 text-white absolute opacity-0 peer-checked:opacity-100 transition-opacity" />
-                            </div>
-                            <span className="text-sm text-dark-300 group-hover:text-white transition-colors">Save this address for future orders</span>
-                          </label>
-                        </div>
+                        {!editingAddressId && (
+                          <div className="pt-2">
+                            <label className="flex items-center gap-3 cursor-pointer group">
+                              <div className="relative flex items-center justify-center">
+                                <input type="checkbox" checked={saveNewAddress} onChange={(e) => setSaveNewAddress(e.target.checked)} className="peer sr-only" />
+                                <div className="w-5 h-5 border-2 border-dark-600 rounded bg-dark-800 peer-checked:bg-primary-600 peer-checked:border-primary-600 transition-colors"></div>
+                                <CheckCircle className="w-3.5 h-3.5 text-white absolute opacity-0 peer-checked:opacity-100 transition-opacity" />
+                              </div>
+                              <span className="text-sm text-dark-300 group-hover:text-white transition-colors">Save this address for future orders</span>
+                            </label>
+                          </div>
+                        )}
                       </div>
                     )}
                   </div>
                 )}
                 
-                <button onClick={() => setStep(2)} className="btn-primary w-full justify-center mt-8">Continue to Review</button>
+                <button onClick={handleContinueToReview} className="btn-primary w-full justify-center mt-8">Continue to Review</button>
               </div>
             )}
             {step === 2 && (
@@ -294,10 +386,35 @@ export default function Checkout() {
                   </div>
                   {coupon && <p className="text-green-400 text-sm mt-2 flex items-center gap-1"><CheckCircle className="w-3.5 h-3.5" /> {coupon.description} — Saving ₹{parseFloat(coupon.discount_amount).toLocaleString('en-IN')}</p>}
                 </div>
+                <div className="card p-5">
+                  <h3 className="font-semibold text-white mb-3 flex items-center gap-2"><CreditCard className="w-4 h-4 text-blue-400" /> Payment Method</h3>
+                  <div className="space-y-2">
+                    {[
+                      { id: 'online', title: 'Online Payment', desc: 'Pay securely with Razorpay / UPI / Cards' },
+                      { id: 'cod', title: 'Cash on Delivery (COD)', desc: 'Pay cash when you receive your items' }
+                    ].map((method) => (
+                      <label key={method.id} className={`flex items-start p-3 rounded-lg border-2 cursor-pointer transition-all ${paymentMethod === method.id ? 'border-primary-500 bg-primary-900/10' : 'border-dark-700 hover:border-dark-500'}`}>
+                        <input type="radio" name="paymentMethod" value={method.id} checked={paymentMethod === method.id} onChange={() => setPaymentMethod(method.id)} className="mt-1 accent-primary-500" />
+                        <div className="ml-3">
+                          <div className="font-medium text-white text-sm">{method.title}</div>
+                          <div className="text-xs text-dark-400 mt-0.5">{method.desc}</div>
+                        </div>
+                      </label>
+                    ))}
+                  </div>
+                </div>
                 <button onClick={handlePlaceOrder} disabled={placing} className="btn-primary w-full justify-center btn-lg">
-                  {placing ? <><Loader2 className="w-5 h-5 animate-spin" /> Placing Order...</> : <><CreditCard className="w-5 h-5" /> Pay ₹{total.toLocaleString('en-IN')}</>}
+                  {placing ? (
+                    <><Loader2 className="w-5 h-5 animate-spin" /> Placing Order...</>
+                  ) : paymentMethod === 'cod' ? (
+                    <><CheckCircle className="w-5 h-5" /> Confirm COD Order</>
+                  ) : (
+                    <><CreditCard className="w-5 h-5" /> Pay ₹{total.toLocaleString('en-IN')}</>
+                  )}
                 </button>
-                <p className="text-xs text-center text-dark-500">Secured by Razorpay · Your payment information is encrypted</p>
+                <p className="text-xs text-center text-dark-500">
+                  {paymentMethod === 'online' ? 'Secured by Razorpay · Your payment information is encrypted' : 'You will pay when the order is delivered'}
+                </p>
               </div>
             )}
           </div>
