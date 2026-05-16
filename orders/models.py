@@ -3,10 +3,18 @@ from django.conf import settings
 import uuid
 
 
-class Cart(models.Model):
-    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='cart')
+from tenants.models import TenantAwareModel
+
+class Cart(TenantAwareModel):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='carts')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['user', 'tenant'], name='unique_user_cart_per_tenant')
+        ]
+
 
     def __str__(self):
         return f'Cart of {self.user.email}'
@@ -41,12 +49,12 @@ class CartItem(models.Model):
         return self.unit_price * self.quantity
 
 
-class Coupon(models.Model):
+class Coupon(TenantAwareModel):
     DISCOUNT_TYPE_CHOICES = (
         ('percent', 'Percentage'),
         ('fixed', 'Fixed Amount'),
     )
-    code = models.CharField(max_length=50, unique=True)
+    code = models.CharField(max_length=50)
     description = models.CharField(max_length=200, blank=True)
     discount_type = models.CharField(max_length=10, choices=DISCOUNT_TYPE_CHOICES, default='percent')
     discount_value = models.DecimalField(max_digits=10, decimal_places=2)
@@ -56,6 +64,11 @@ class Coupon(models.Model):
     is_active = models.BooleanField(default=True)
     expires_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        constraints = [
+            models.UniqueConstraint(fields=['code', 'tenant'], name='unique_coupon_code_per_tenant')
+        ]
 
     def __str__(self):
         return self.code
@@ -78,7 +91,7 @@ class Coupon(models.Model):
         return min(self.discount_value, order_total)
 
 
-class Order(models.Model):
+class Order(TenantAwareModel):
     STATUS_CHOICES = (
         ('pending', 'Pending'),
         ('confirmed', 'Confirmed'),
@@ -100,7 +113,7 @@ class Order(models.Model):
     )
 
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='orders')
-    order_number = models.CharField(max_length=20, unique=True, blank=True)
+    order_number = models.CharField(max_length=20, blank=True)
     order_status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
     payment_method = models.CharField(max_length=10, choices=PAYMENT_METHOD_CHOICES, default='online')
     payment_status = models.CharField(max_length=10, choices=PAYMENT_STATUS_CHOICES, default='pending')
@@ -119,6 +132,9 @@ class Order(models.Model):
 
     class Meta:
         ordering = ['-created_at']
+        constraints = [
+            models.UniqueConstraint(fields=['order_number', 'tenant'], name='unique_order_number_per_tenant')
+        ]
 
     def save(self, *args, **kwargs):
         if not self.order_number:

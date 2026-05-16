@@ -2,9 +2,14 @@ import axios from 'axios';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api';
 
+const TENANT_ID = import.meta.env.VITE_TENANT_ID || 'default';
+
 const api = axios.create({
   baseURL: API_BASE,
-  headers: { 'Content-Type': 'application/json' },
+  headers: { 
+    'Content-Type': 'application/json',
+    'X-Tenant-ID': TENANT_ID
+  },
 });
 
 // Attach access token to every request
@@ -24,7 +29,10 @@ api.interceptors.response.use(
       const refresh = localStorage.getItem('refresh_token');
       if (refresh) {
         try {
-          const res = await axios.post(`${API_BASE}/auth/token/refresh/`, { refresh });
+          const res = await axios.post(`${API_BASE}/auth/token/refresh/`, 
+            { refresh },
+            { headers: { 'X-Tenant-ID': TENANT_ID } }
+          );
           localStorage.setItem('access_token', res.data.access);
           original.headers.Authorization = `Bearer ${res.data.access}`;
           return api(original);

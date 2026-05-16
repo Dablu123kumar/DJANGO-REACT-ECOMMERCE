@@ -170,6 +170,7 @@ class OrderListView(generics.ListAPIView):
     serializer_class = OrderSerializer
     permission_classes = [IsAuthenticated]
 
+
     def get_queryset(self):
         if self.request.user.is_admin:
             return Order.objects.all().prefetch_related('items')
@@ -179,6 +180,7 @@ class OrderListView(generics.ListAPIView):
 class OrderDetailView(generics.RetrieveAPIView):
     serializer_class = OrderSerializer
     permission_classes = [IsAuthenticated]
+
 
     def get_queryset(self):
         if self.request.user.is_admin:

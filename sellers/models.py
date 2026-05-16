@@ -3,7 +3,9 @@ from django.utils.text import slugify
 import uuid
 
 
-class Store(models.Model):
+from tenants.models import TenantAwareModel
+
+class Store(TenantAwareModel):
     STATUS_CHOICES = (
         ('pending',  'Pending Approval'),
         ('approved', 'Approved'),
@@ -16,7 +18,7 @@ class Store(models.Model):
         related_name='store',
     )
     store_name       = models.CharField(max_length=150)
-    slug             = models.SlugField(unique=True, blank=True)
+    slug             = models.SlugField(blank=True)
     description      = models.TextField(blank=True)
     logo             = models.ImageField(upload_to='store_logos/', blank=True, null=True)
     phone            = models.CharField(max_length=20, blank=True)
@@ -33,6 +35,9 @@ class Store(models.Model):
         ordering = ['-created_at']
         verbose_name = 'Store'
         verbose_name_plural = 'Stores'
+        constraints = [
+            models.UniqueConstraint(fields=['slug', 'tenant'], name='unique_store_slug_per_tenant')
+        ]
 
     def __str__(self):
         return f'{self.store_name} ({self.status})'

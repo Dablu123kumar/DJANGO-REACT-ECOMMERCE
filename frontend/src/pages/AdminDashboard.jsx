@@ -1,29 +1,46 @@
 import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard, Package, ShoppingBag, Users, Store,
   Plus, Trash2, Eye, RefreshCw, X, Loader2, AlertTriangle,
-  CheckCircle, DollarSign, Clock, XCircle
+  CheckCircle, DollarSign, Clock, XCircle, ChevronDown, ChevronLeft, ChevronRight, List, Layers
 } from 'lucide-react';
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, LineChart, Line, CartesianGrid } from 'recharts';
 import { fetchAdminStores, approveStore, rejectStore } from '../redux/slices/sellerSlice';
 import api from '../services/api';
 import toast from 'react-hot-toast';
+import ProductDetailsModal from '../components/ProductDetailsModal';
+import CreateCategoryModal from '../components/CreateCategoryModal';
+
+const API_BASE = import.meta.env.VITE_API_BASE_URL?.replace('/api', '') || 'http://localhost:8000';
 
 export default function AdminDashboard() {
   const { user } = useSelector((s) => s.auth);
   const { adminStores } = useSelector((s) => s.seller);
   const navigate = useNavigate();
+  const location = useLocation();
   const dispatch = useDispatch();
-  const [tab, setTab] = useState('overview');
+  const [tab, setTab] = useState(location.state?.activeTab || 'overview');
   const [stats, setStats] = useState(null);
   const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);
   const [users, setUsers] = useState([]);
+  const [categories, setCategories] = useState([]); // Add categories storage
   const [loading, setLoading] = useState(true);
-  const [rejectModal, setRejectModal] = useState(null); // storeId
+  const [rejectModal, setRejectModal] = useState(null); 
   const [rejectReason, setRejectReason] = useState('');
+  const [viewProductModal, setViewProductModal] = useState(null);
+  const [isProductsOpen, setIsProductsOpen] = useState(false); // Toggle for sidebar group
+  const [isCatModalOpen, setIsCatModalOpen] = useState(false); // For quickly creating cats
+  const [catModalMode, setCatModalMode] = useState('category'); // 'category' or 'subcategory'
+
+
+  // Pagination state
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalProducts, setTotalProducts] = useState(0);
+  const [productsLoading, setProductsLoading] = useState(false);
 
   useEffect(() => {
     if (!user || user.role !== 'admin') { navigate('/'); return; }
@@ -31,22 +48,45 @@ export default function AdminDashboard() {
     dispatch(fetchAdminStores());
   }, [user]);
 
+  useEffect(() => {
+    if (tab === 'products') {
+      fetchProducts(currentPage);
+    }
+  }, [currentPage, tab]);
+
+  const fetchProducts = async (page) => {
+    setProductsLoading(true);
+    try {
+      const res = await api.get(`/products/?page=${page}&page_size=12`);
+      setProducts(res.data.results || res.data);
+      setTotalProducts(res.data.count || res.data.length);
+      setTotalPages(Math.ceil((res.data.count || res.data.length) / 12));
+    } catch (err) {
+      toast.error('Failed to update products page');
+    }
+    setProductsLoading(false);
+  };
+
   const loadData = async () => {
     setLoading(true);
     try {
-      const [statsP, statsO, prods, ords, usrs] = await Promise.all([
+      const [statsP, statsO, ords, usrs, cats] = await Promise.all([
         api.get('/products/admin/stats/'),
         api.get('/orders/admin/stats/'),
-        api.get('/products/?page_size=100'),
         api.get('/orders/?page_size=50'),
         api.get('/auth/users/'),
+        api.get('/categories/'),
       ]);
       setStats({ products: statsP.data, orders: statsO.data });
-      setProducts(prods.data.results || prods.data);
       setOrders(ords.data.results || ords.data);
       setUsers(usrs.data.results || usrs.data);
+      setCategories(cats.data.results || cats.data);
+      
+      // Load products page 1 explicitly
+      await fetchProducts(1);
+      setCurrentPage(1);
     } catch (err) {
-      toast.error('Failed to load admin data');
+      toast.error('Failed to load admin dashboard metrics');
     }
     setLoading(false);
   };
@@ -68,7 +108,7 @@ export default function AdminDashboard() {
     if (!confirm('Delete this product?')) return;
     try {
       await api.delete(`/products/${slug}/`);
-      loadData();
+      fetchProducts(currentPage);
       toast.success('Product deleted');
     } catch { toast.error('Could not delete product'); }
   };
@@ -79,6 +119,30 @@ export default function AdminDashboard() {
       setOrders(prev => prev.map(o => o.id === orderId ? { ...o, ...res.data } : o));
       toast.success('Status updated');
     } catch { toast.error('Could not update status'); }
+  };
+
+  const handleProductApproval = async (productId, rawAction) => {
+    const actionMap = { 'approved': 'approve', 'rejected': 'reject', 'pending': 'pending' };
+    const normalized = actionMap[rawAction] || rawAction;
+    try {
+      const res = await api.post(`/products/${productId}/approval/${normalized}/`);
+      setProducts(prev => prev.map(p => p.id === productId ? { ...p, approval_status: res.data.approval_status } : p));
+      toast.success(`Status updated successfully!`);
+    } catch { toast.error('Update failed'); }
+  };
+
+  const cycleProductApproval = (product) => {
+    const cycleMap = { 'pending': 'approved', 'approved': 'rejected', 'rejected': 'pending' };
+    const next = cycleMap[product.approval_status] || 'pending';
+    handleProductApproval(product.id, next);
+  };
+
+  const handleToggleProductActive = async (product) => {
+    try {
+      const res = await api.patch(`/products/${product.slug}/`, { is_active: !product.is_active });
+      setProducts(prev => prev.map(p => p.id === product.id ? { ...p, is_active: res.data.is_active } : p));
+      toast.success(`Visibility updated!`);
+    } catch { toast.error('Update failed'); }
   };
 
   const CHART_DATA = [
@@ -111,13 +175,52 @@ export default function AdminDashboard() {
   );
 
   return (
-    <div className="h-screen bg-dark-900 flex overflow-hidden">
+    <div className="h-screen bg-dark-900 flex overflow-hidden pb-16 lg:pb-0">
       <aside className="hidden lg:flex flex-col w-56 bg-dark-800 border-r border-dark-700 h-full pt-6 px-3 flex-shrink-0">
         <div className="mb-8 px-3 flex items-center justify-between">
           <p className="text-xs text-dark-500 font-semibold uppercase tracking-wider">Admin Panel</p>
           <Link to="/" className="text-xs text-primary-400 hover:text-primary-300">Exit</Link>
         </div>
-        {TABS.map(({ id, label, icon: Icon }) => (
+        {/* Overview */}
+        <button onClick={() => setTab('overview')}
+          className={`flex items-center gap-3 px-3 py-2.5 rounded-xl mb-1 text-sm font-medium transition-all ${tab === 'overview' ? 'bg-primary-600 text-white shadow-glow' : 'text-dark-400 hover:text-white hover:bg-dark-700'}`}>
+          <LayoutDashboard className="w-4 h-4" /> Overview
+        </button>
+
+        {/* Products Dropdown Group */}
+        <div className="mb-1">
+          <button onClick={() => setIsProductsOpen(!isProductsOpen)}
+            className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${(tab === 'products' || tab === 'categories' || tab === 'subcategories') ? 'text-white' : 'text-dark-400 hover:text-white hover:bg-dark-700'}`}>
+            <div className="flex items-center gap-3">
+              <Package className="w-4 h-4" /> Products
+            </div>
+            {isProductsOpen ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
+          </button>
+          
+          {isProductsOpen && (
+            <div className="ml-5 pl-3 border-l border-dark-700 mt-1 space-y-1 animate-slide-down">
+              <button onClick={() => setTab('products')} 
+                className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs font-medium transition-all ${tab === 'products' ? 'text-primary-400 bg-primary-900/20' : 'text-dark-400 hover:text-white hover:bg-dark-800'}`}>
+                <List className="w-3 h-3" /> Product List
+              </button>
+              <button onClick={() => setTab('categories')} 
+                className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs font-medium transition-all ${tab === 'categories' ? 'text-primary-400 bg-primary-900/20' : 'text-dark-400 hover:text-white hover:bg-dark-800'}`}>
+                <Package className="w-3 h-3" /> Category List
+              </button>
+              <button onClick={() => setTab('subcategories')} 
+                className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs font-medium transition-all ${tab === 'subcategories' ? 'text-primary-400 bg-primary-900/20' : 'text-dark-400 hover:text-white hover:bg-dark-800'}`}>
+                <Layers className="w-3 h-3" /> Subcategory List
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Remaining Tabs */}
+        {[
+          { id: 'orders',    label: 'Orders',    icon: ShoppingBag },
+          { id: 'users',     label: 'Users',     icon: Users },
+          { id: 'sellers',   label: 'Sellers',   icon: Store },
+        ].map(({ id, label, icon: Icon }) => (
           <button key={id} onClick={() => setTab(id)}
             className={`flex items-center gap-3 px-3 py-2.5 rounded-xl mb-1 text-sm font-medium transition-all ${tab === id ? 'bg-primary-600 text-white shadow-glow' : 'text-dark-400 hover:text-white hover:bg-dark-700'}`}>
             <Icon className="w-4 h-4" /> {label}
@@ -211,36 +314,240 @@ export default function AdminDashboard() {
           {tab === 'products' && (
             <div className="space-y-5 animate-fade-in">
               <div className="flex items-center justify-between">
-                <h2 className="text-xl font-heading font-bold text-white">Products</h2>
+                <div className="flex items-center gap-3">
+                  <h2 className="text-xl font-heading font-bold text-white">Products</h2>
+                  <span className="bg-dark-800 text-dark-400 text-xs px-2 py-0.5 rounded-full border border-dark-700">Total: {totalProducts}</span>
+                </div>
                 <Link to="/admin/products/new" className="btn-primary btn-sm"><Plus className="w-4 h-4" /> Add Product</Link>
               </div>
-              <div className="card overflow-hidden">
+              <div className="card overflow-hidden relative">
+                {productsLoading && (
+                  <div className="absolute inset-0 bg-dark-900/40 backdrop-blur-[1px] z-20 flex items-center justify-center">
+                    <Loader2 className="w-8 h-8 text-primary-400 animate-spin" />
+                  </div>
+                )}
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead><tr className="table-header">
-                      {['Product', 'Price', 'Stock', 'Category', 'Active', 'Actions'].map(h => (
-                        <th key={h} className="px-4 py-3 text-left">{h}</th>
+                      {['Image', 'Product', 'Price', 'Stock', 'Category', 'Added By', 'Status', 'Active', 'Actions'].map(h => (
+                        <th key={h} className="px-4 py-3 text-left whitespace-nowrap">{h}</th>
                       ))}
                     </tr></thead>
                     <tbody>
                       {products.map(p => (
                         <tr key={p.id} className="table-row">
-                          <td className="px-4 py-3 font-medium text-white max-w-[200px] truncate">{p.name}</td>
-                          <td className="px-4 py-3 text-dark-300">₹{parseFloat(p.effective_price || p.price).toLocaleString('en-IN')}</td>
-                          <td className="px-4 py-3"><span className={p.stock === 0 ? 'text-danger' : p.stock <= 10 ? 'text-amber-400' : 'text-green-400'}>{p.stock}</span></td>
-                          <td className="px-4 py-3 text-dark-400">{p.category_name}</td>
-                          <td className="px-4 py-3">{p.is_active ? <CheckCircle className="w-4 h-4 text-green-400" /> : <X className="w-4 h-4 text-red-400" />}</td>
                           <td className="px-4 py-3">
-                            <div className="flex items-center gap-2">
-                              <Link to={`/products/${p.slug}`} className="btn-ghost p-1.5 rounded-lg text-dark-400 hover:text-white" title="View Product"><Eye className="w-4 h-4" /></Link>
-                              <Link to={`/admin/products/${p.slug}/edit`} className="btn-ghost p-1.5 rounded-lg text-dark-400 hover:text-primary-400" title="Edit Product">
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
-                              </Link>
-                              <button onClick={() => handleDeleteProduct(p.slug)} className="btn-ghost p-1.5 rounded-lg text-dark-400 hover:text-danger" title="Delete Product"><Trash2 className="w-4 h-4" /></button>
+                            <div className="w-10 h-10 rounded-lg bg-dark-800 border border-dark-750 overflow-hidden flex items-center justify-center p-1 flex-shrink-0 shadow-sm">
+                              {p.primary_image?.image ? (
+                                <img 
+                                  src={p.primary_image.image.startsWith('http') ? p.primary_image.image : `${API_BASE}${p.primary_image.image}`} 
+                                  alt="" 
+                                  className="w-full h-full object-contain transition-transform hover:scale-125"
+                                />
+                              ) : (
+                                <Package className="w-5 h-5 text-dark-600" />
+                              )}
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 font-medium text-white max-w-[200px] truncate" title={p.name}>{p.name}</td>
+                          <td className="px-4 py-3 text-dark-300 font-semibold">₹{parseFloat(p.effective_price || p.price).toLocaleString('en-IN')}</td>
+                          <td className="px-4 py-3"><span className={`font-mono px-2 py-0.5 rounded-md text-xs border ${p.stock === 0 ? 'text-danger border-red-950 bg-red-950/20' : p.stock <= 10 ? 'text-amber-400 border-amber-950 bg-amber-950/20' : 'text-green-400 border-green-950 bg-green-950/20'}`}>{p.stock}</span></td>
+                          <td className="px-4 py-3 text-dark-400 truncate max-w-[120px]">{p.category_name}</td>
+                          <td className="px-4 py-3">
+                            <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border shadow-sm ${
+                              p.seller_name === 'Admin' 
+                                ? 'bg-indigo-900/30 text-indigo-400 border-indigo-800/50' 
+                                : 'bg-emerald-900/30 text-emerald-400 border-emerald-800/50'
+                            }`}>
+                              {p.seller_name}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3">
+                            <button onClick={() => cycleProductApproval(p)} className="flex items-center justify-center hover:scale-110 transition-transform" title="Click to cycle approval status">
+                              {p.approval_status === 'approved' && <CheckCircle className="w-4 h-4 text-green-400" />}
+                              {p.approval_status === 'rejected' && <XCircle className="w-4 h-4 text-red-400" />}
+                              {p.approval_status === 'pending'  && <Clock className="w-4 h-4 text-amber-400" />}
+                            </button>
+                          </td>
+                          <td className="px-4 py-3">
+                            <button onClick={() => handleToggleProductActive(p)} className="flex items-center justify-center hover:scale-110 transition-transform" title="Toggle active visibility">
+                              {p.is_active ? <CheckCircle className="w-4 h-4 text-green-400" /> : <X className="w-4 h-4 text-red-400" />}
+                            </button>
+                          </td>
+                          <td className="px-4 py-3">
+                            <div className="flex items-center gap-1.5">
+                              <button onClick={() => setViewProductModal(p.slug)} className="btn-ghost p-1.5 rounded-lg text-dark-400 hover:text-white hover:bg-dark-700" title="View Detail"><Eye className="w-4 h-4" /></button>
+                              
+                              {!p.seller && (
+                                <>
+                                  <Link to={`/admin/products/${p.slug}/edit`} className="btn-ghost p-1.5 rounded-lg text-dark-400 hover:text-primary-400 hover:bg-dark-700" title="Edit">
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                                  </Link>
+                                  <button onClick={() => handleDeleteProduct(p.slug)} className="btn-ghost p-1.5 rounded-lg text-dark-400 hover:text-danger hover:bg-dark-700" title="Delete"><Trash2 className="w-4 h-4" /></button>
+                                </>
+                              )}
                             </div>
                           </td>
                         </tr>
                       ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              {/* Visual Pagination Controls */}
+              {totalPages > 1 && (
+                <div className="flex items-center justify-between bg-dark-850 px-5 py-3.5 border border-dark-700 mt-4 rounded-xl shadow-lg animate-fade-in">
+                  <div className="flex flex-1 justify-between sm:hidden">
+                    <button 
+                      onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                      disabled={currentPage === 1}
+                      className="btn-secondary btn-sm"
+                    >
+                      Previous
+                    </button>
+                    <button 
+                      onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                      disabled={currentPage === totalPages}
+                      className="btn-secondary btn-sm ml-3"
+                    >
+                      Next
+                    </button>
+                  </div>
+                  <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
+                    <div>
+                      <p className="text-xs text-dark-400">
+                        Showing <span className="font-bold text-white">{(currentPage - 1) * 12 + 1}</span> to <span className="font-bold text-white">{Math.min(currentPage * 12, totalProducts)}</span> of <span className="font-bold text-white">{totalProducts}</span> products
+                      </p>
+                    </div>
+                    <div>
+                      <nav className="isolate inline-flex rounded-md shadow-sm gap-1.5" aria-label="Pagination">
+                        <button
+                          onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                          disabled={currentPage === 1}
+                          className={`relative inline-flex items-center rounded-lg px-2.5 py-2 text-dark-400 border border-dark-700 bg-dark-800 hover:bg-dark-700 hover:text-white transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed active:scale-95`}
+                        >
+                          <ChevronLeft className="h-4 w-4" />
+                        </button>
+                        
+                        {[...Array(totalPages)].map((_, idx) => {
+                          const pNum = idx + 1;
+                          if (totalPages > 7 && Math.abs(pNum - currentPage) > 2 && pNum !== 1 && pNum !== totalPages) {
+                            if (Math.abs(pNum - currentPage) === 3) return <span key={pNum} className="text-dark-600 px-1 flex items-end pb-1">...</span>;
+                            return null;
+                          }
+                          
+                          return (
+                            <button
+                              key={pNum}
+                              onClick={() => setCurrentPage(pNum)}
+                              className={`relative inline-flex items-center px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all border cursor-pointer active:scale-95
+                                ${currentPage === pNum 
+                                  ? 'bg-primary-600 border-primary-500 text-white shadow-glow z-10 scale-105' 
+                                  : 'text-dark-400 border-dark-700 bg-dark-800 hover:bg-dark-700 hover:text-white'}`}
+                            >
+                              {pNum}
+                            </button>
+                          );
+                        })}
+
+                        <button
+                          onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                          disabled={currentPage === totalPages}
+                          className={`relative inline-flex items-center rounded-lg px-2.5 py-2 text-dark-400 border border-dark-700 bg-dark-800 hover:bg-dark-700 hover:text-white transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed active:scale-95`}
+                        >
+                          <ChevronRight className="h-4 w-4" />
+                        </button>
+                      </nav>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {tab === 'categories' && (
+            <div className="space-y-5 animate-fade-in">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-heading font-bold text-white">Categories</h2>
+                <button onClick={() => { setCatModalMode('category'); setIsCatModalOpen(true); }} className="btn-primary btn-sm"><Plus className="w-4 h-4" /> Create Category</button>
+
+              </div>
+              <div className="card overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead><tr className="table-header">
+                      {['Image', 'Name', 'Slug', 'Subcategories', 'Total Products'].map(h => (
+                        <th key={h} className="px-4 py-3 text-left">{h}</th>
+                      ))}
+                    </tr></thead>
+                    <tbody>
+                      {categories.filter(c => !c.parent).map(c => (
+                        <tr key={c.id} className="table-row">
+                          <td className="px-4 py-3">
+                            <div className="w-10 h-10 rounded-lg bg-dark-800 border border-dark-750 overflow-hidden flex items-center justify-center p-1">
+                              {c.image ? (
+                                <img src={c.image.startsWith('http') ? c.image : `${API_BASE}${c.image}`} alt="" className="w-full h-full object-contain" />
+                              ) : (
+                                <Package className="w-5 h-5 text-dark-600" />
+                              )}
+                            </div>
+                          </td>
+                          <td className="px-4 py-3 font-medium text-white">{c.name}</td>
+                          <td className="px-4 py-3 text-dark-300">{c.slug}</td>
+                          <td className="px-4 py-3 text-dark-400">
+                            {categories.filter(sc => sc.parent === c.id).length} items
+                          </td>
+                          <td className="px-4 py-3 text-dark-400 font-bold">{c.product_count || 0}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {tab === 'subcategories' && (
+            <div className="space-y-5 animate-fade-in">
+              <div className="flex items-center justify-between">
+                <h2 className="text-xl font-heading font-bold text-white">Subcategories</h2>
+                <button onClick={() => { setCatModalMode('subcategory'); setIsCatModalOpen(true); }} className="btn-primary btn-sm"><Plus className="w-4 h-4" /> Create Subcategory</button>
+
+              </div>
+              <div className="card overflow-hidden">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-sm">
+                    <thead><tr className="table-header">
+                      {['Image', 'Subcategory', 'Parent Category', 'Slug', 'Total Products'].map(h => (
+                        <th key={h} className="px-4 py-3 text-left">{h}</th>
+                      ))}
+                    </tr></thead>
+                    <tbody>
+                      {categories.filter(c => c.parent).map(c => {
+                        const parent = categories.find(pc => pc.id === c.parent);
+                        return (
+                          <tr key={c.id} className="table-row">
+                            <td className="px-4 py-3">
+                              <div className="w-8 h-8 rounded-lg bg-dark-800 border border-dark-750 overflow-hidden flex items-center justify-center p-1">
+                                {c.image ? (
+                                  <img src={c.image.startsWith('http') ? c.image : `${API_BASE}${c.image}`} alt="" className="w-full h-full object-contain" />
+                                ) : (
+                                  <Layers className="w-4 h-4 text-dark-600" />
+                                )}
+                              </div>
+                            </td>
+                            <td className="px-4 py-3 font-medium text-white">{c.name}</td>
+                            <td className="px-4 py-3">
+                              <span className="text-xs font-medium px-2 py-0.5 rounded bg-dark-700 text-primary-300 border border-dark-600">
+                                {parent ? parent.name : 'Main'}
+                              </span>
+                            </td>
+                            <td className="px-4 py-3 text-dark-300">{c.slug}</td>
+                            <td className="px-4 py-3 text-dark-400 font-bold">{c.product_count || 0}</td>
+                          </tr>
+                        );
+                      })}
                     </tbody>
                   </table>
                 </div>
@@ -433,6 +740,26 @@ export default function AdminDashboard() {
           </div>
         </div>
       )}
+
+      {/* View Product Modal */}
+      {viewProductModal && (
+        <ProductDetailsModal
+          slug={viewProductModal}
+          onClose={() => setViewProductModal(null)}
+        />
+      )}
+
+      {/* Create Category Modal */}
+      <CreateCategoryModal
+        isOpen={isCatModalOpen}
+        onClose={() => setIsCatModalOpen(false)}
+        isSubcategory={catModalMode === 'subcategory'}
+        parentCategories={categories}
+        onSuccess={(newCat) => {
+          loadData(); // Refresh table after create
+          if (newCat.parent) setTab('subcategories'); else setTab('categories');
+        }}
+      />
     </div>
   );
 }

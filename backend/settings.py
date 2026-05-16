@@ -27,6 +27,7 @@ INSTALLED_APPS = [
     'django_filters',
     'drf_spectacular',
     # Local apps
+    'tenants',
     'accounts',
     'products',
     'orders',
@@ -38,6 +39,7 @@ MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'corsheaders.middleware.CorsMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'tenants.middleware.TenantMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -127,14 +129,20 @@ SIMPLE_JWT = {
 }
 
 # CORS
-CORS_ALLOWED_ORIGINS = env.list('CORS_ALLOWED_ORIGINS', default=[
-    'http://localhost:5173',
-    'http://127.0.0.1:5173',
-    'http://localhost:5174',
-    'http://localhost:5175',
-    'http://localhost:5176',
-])
+from corsheaders.defaults import default_headers
+CORS_ALLOW_ALL_ORIGINS = True
+# CORS_ALLOWED_ORIGINS = env.list('CORS_ALLOWED_ORIGINS', default=[
+#     'http://localhost:5173',
+#     'http://127.0.0.1:5173',
+#     'http://localhost:5174',
+#     'http://127.0.0.1:5174',
+#     'http://localhost:5175',
+#     'http://localhost:5176',
+# ])
 CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_HEADERS = list(default_headers) + [
+    'x-tenant-id',
+]
 
 # Razorpay
 RAZORPAY_KEY_ID = env('RAZORPAY_KEY_ID', default='')
@@ -157,3 +165,7 @@ SPECTACULAR_SETTINGS = {
     'VERSION': '1.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
 }
+
+# Allow USERNAME_FIELD to be unique per-tenant instead of globally unique
+SILENCED_SYSTEM_CHECKS = ['auth.E003']
+

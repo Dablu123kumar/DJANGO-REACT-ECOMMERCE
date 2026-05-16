@@ -5,7 +5,7 @@ from rest_framework import status, generics
 from django.utils import timezone
 from django.db.models import Sum, Count, Q
 from .models import Store
-from .serializers import StoreSerializer, SellerRegisterSerializer, AdminStoreSerializer
+from .serializers import StoreSerializer, SellerRegisterSerializer, AdminStoreSerializer, StoreApplySerializer
 
 
 # ─── Permission helpers ───────────────────────────────────────────────────────
@@ -41,6 +41,23 @@ class SellerRegisterView(APIView):
             {'message': 'Store application submitted. You will be notified once approved.'},
             status=status.HTTP_201_CREATED,
         )
+
+
+class ApplyToBecomeSellerView(APIView):
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        user = request.user
+        if hasattr(user, 'store') or user.role == 'seller':
+            return Response({'error': 'Already submitted application or already a seller.'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        serializer = StoreApplySerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(user=user, status='pending')
+            user.role = 'seller'
+            user.save()
+            return Response({'message': 'Application submitted successfully.'}, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
 # ─── Seller: own store info & status ─────────────────────────────────────────
@@ -108,25 +125,22 @@ class SellerDashboardView(APIView):
 
 # ─── Seller: own products ─────────────────────────────────────────────────────
 
-class SellerProductListView(APIView):
+class SellerProductListView(generics.ListCreateAPIView):
     permission_classes = [IsApprovedSeller]
 
-    def get(self, request):
-        from products.models import Product
+    def get_serializer_class(self):
+        if self.request.method == 'POST':
+            from products.serializers import ProductCreateUpdateSerializer
+            return ProductCreateUpdateSerializer
         from products.serializers import ProductListSerializer
-        qs = Product.objects.filter(seller=request.user.store)
-        data = ProductListSerializer(qs, many=True, context={'request': request}).data
-        return Response(data)
+        return ProductListSerializer
 
-    def post(self, request):
-        from products.serializers import ProductCreateUpdateSerializer
-        serializer = ProductCreateUpdateSerializer(
-            data=request.data, context={'request': request}
-        )
-        if serializer.is_valid():
-            serializer.save(seller=request.user.store)
-            return Response(serializer.data, status=201)
-        return Response(serializer.errors, status=400)
+    def get_queryset(self):
+        from products.models import Product
+        return Product.objects.filter(seller=self.request.user.store).order_by('-created_at')
+
+    def perform_create(self, serializer):
+        serializer.save(seller=self.request.user.store)
 
 
 class SellerProductDetailView(generics.RetrieveUpdateDestroyAPIView):

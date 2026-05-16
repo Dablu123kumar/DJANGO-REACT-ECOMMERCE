@@ -105,34 +105,34 @@ export default function ProductCard({ product }) {
       </div>
 
       {/* Info */}
-      <div className="p-4">
+      <div className="p-2 sm:p-4">
         {product.category_name && (
-          <p className="text-xs text-primary-400 font-medium mb-1 uppercase tracking-wide">{product.category_name}</p>
+          <p className="text-[8px] sm:text-xs text-primary-400 font-medium mb-0.5 sm:mb-1 uppercase tracking-wide">{product.category_name}</p>
         )}
-        <h3 className="font-medium text-dark-100 line-clamp-2 text-sm leading-snug mb-2 group-hover:text-white transition-colors">
+        <h3 className="font-medium text-dark-100 line-clamp-2 text-xs sm:text-sm leading-snug mb-1 sm:mb-2 group-hover:text-white transition-colors">
           {product.name}
         </h3>
-        <div className="flex items-center gap-1.5 mb-2">
+        <div className="flex items-center gap-1 mb-1 sm:mb-2">
           <StarRating rating={product.average_rating} />
           {product.review_count > 0 && (
-            <span className="text-xs text-dark-400">({product.review_count})</span>
+            <span className="text-[10px] sm:text-xs text-dark-400">({product.review_count})</span>
           )}
         </div>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="font-bold text-white">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <span className="font-bold text-white text-xs sm:text-base">
               ₹{parseFloat(product.effective_price).toLocaleString('en-IN')}
             </span>
             {product.discount_price && (
-              <span className="text-xs text-dark-500 line-through">
+              <span className="text-[10px] sm:text-xs text-dark-500 line-through">
                 ₹{parseFloat(product.price).toLocaleString('en-IN')}
               </span>
             )}
           </div>
           {product.in_stock ? (
-            <span className="text-xs text-green-400">In Stock</span>
+            <span className="text-[10px] sm:text-xs text-green-400">In Stock</span>
           ) : (
-            <span className="text-xs text-red-400">Out of Stock</span>
+            <span className="text-[10px] sm:text-xs text-red-400">Out of Stock</span>
           )}
         </div>
       </div>

@@ -114,7 +114,7 @@ export default function ProductDetail() {
           <div>
             <div className="relative bg-dark-800 rounded-2xl overflow-hidden aspect-square mb-3">
               {imageUrl ? (
-                <img src={imageUrl} alt={currentImage?.alt_text || product.name} className="w-full h-full object-cover" />
+                <img src={imageUrl} alt={currentImage?.alt_text || product.name} className="w-full h-full object-contain p-4" />
               ) : (
                 <div className="w-full h-full flex items-center justify-center">
                   <ShoppingCart className="w-24 h-24 text-dark-600" />

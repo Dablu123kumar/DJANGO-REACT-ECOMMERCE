@@ -55,9 +55,20 @@ export default function OrderDetail() {
             <h1 className="text-2xl font-heading font-bold text-white">Order #{order.order_number}</h1>
             <p className="text-dark-400 text-sm">{new Date(order.created_at).toLocaleDateString('en-IN', { dateStyle: 'long' })}</p>
           </div>
-          <div className="flex items-center gap-3">
-            <span className={`status-${order.order_status}`}>{order.order_status}</span>
-            <span className={`status-${order.payment_status}`}>{order.payment_status}</span>
+          <div className="flex flex-wrap items-center gap-3">
+            {order.payment_method === 'cod' && (
+              <span className="badge badge-warning flex items-center gap-1">
+                <CreditCard className="w-3 h-3" /> COD
+              </span>
+            )}
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+              <span className="text-[10px] text-dark-500 uppercase font-bold tracking-wider">Order Status:</span>
+              <span className={`status-${order.order_status}`}>{order.order_status}</span>
+            </div>
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2">
+              <span className="text-[10px] text-dark-500 uppercase font-bold tracking-wider">Payment:</span>
+              <span className={`status-${order.payment_status}`}>{order.payment_status}</span>
+            </div>
           </div>
         </div>
 

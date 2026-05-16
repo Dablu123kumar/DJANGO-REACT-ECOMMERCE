@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
-import { User, Package, Lock, Camera, Loader2, Save } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { User, Package, Lock, Camera, Loader2, Save, Store, ChevronRight } from 'lucide-react';
 import { fetchProfile, updateProfile } from '../redux/slices/authSlice';
 import { fetchOrders } from '../redux/slices/orderSlice';
 import api from '../services/api';
@@ -107,6 +108,26 @@ export default function Profile() {
                 {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />} Save Changes
               </button>
             </form>
+
+            {user?.role !== 'seller' && user?.role !== 'admin' && (
+              <div className="mt-8 pt-8 border-t border-dark-700">
+                <div className="p-6 rounded-2xl bg-gradient-to-br from-primary-900/20 to-cyan-900/20 border border-primary-800/50 relative overflow-hidden group">
+                  <div className="absolute top-0 right-0 -mr-8 -mt-8 w-32 h-32 bg-primary-500/10 rounded-full blur-3xl group-hover:bg-primary-500/20 transition-colors duration-500 pointer-events-none" />
+                  <div className="flex flex-col md:flex-row items-start md:items-center gap-5 relative">
+                    <div className="w-14 h-14 rounded-xl bg-dark-800 border border-dark-700 flex items-center justify-center shadow-lg shrink-0">
+                      <Store className="w-7 h-7 text-primary-400" />
+                    </div>
+                    <div className="flex-1">
+                      <h3 className="text-lg font-heading font-bold text-white">Start Selling on ShopElite</h3>
+                      <p className="text-dark-400 text-sm mt-1">Convert your existing account into a seller dashboard, list your products, and earn money globally.</p>
+                    </div>
+                    <Link to="/seller/apply" className="btn-primary w-full md:w-auto shrink-0 group/btn">
+                      Apply to Sell <ChevronRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
+                    </Link>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
 

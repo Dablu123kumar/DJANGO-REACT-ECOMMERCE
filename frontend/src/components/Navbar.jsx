@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { ShoppingCart, User, Search, Menu, X, Package, ChevronDown, Heart, LogOut, LayoutDashboard } from 'lucide-react';
+import { ShoppingCart, User, Search, Menu, X, Package, ChevronDown, Heart, LogOut, LayoutDashboard, Store } from 'lucide-react';
 import { logoutUser } from '../redux/slices/authSlice';
 import { fetchCart } from '../redux/slices/cartSlice';
 import toast from 'react-hot-toast';
@@ -122,6 +122,7 @@ export default function Navbar() {
                       { to: '/profile', label: 'My Profile', icon: User },
                       { to: '/orders', label: 'My Orders', icon: Package },
                       { to: '/wishlist', label: 'Wishlist', icon: Heart },
+                      ...(user.role === 'seller' && user.store_status === 'approved' ? [{ to: '/seller/dashboard', label: 'Seller Dashboard', icon: Store }] : []),
                       ...(user.role === 'admin' ? [{ to: '/admin', label: 'Admin Panel', icon: LayoutDashboard }] : []),
                     ].map(({ to, label, icon: Icon }) => (
                       <Link key={to} to={to} className="flex items-center gap-2.5 px-4 py-2 text-sm text-dark-300 hover:text-white hover:bg-dark-800/50 transition-colors">

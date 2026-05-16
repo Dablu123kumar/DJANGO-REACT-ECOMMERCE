@@ -94,7 +94,10 @@ class AdminUserListView(generics.ListAPIView):
     """Admin-only: list all users."""
     serializer_class = UserProfileSerializer
     permission_classes = [IsAuthenticated]
-    queryset = User.objects.all()
+
+    def get_queryset(self):
+        return User.objects.all()
+
 
     def get(self, request, *args, **kwargs):
         if not request.user.is_admin:
@@ -106,7 +109,10 @@ class AdminUserDetailView(generics.RetrieveUpdateDestroyAPIView):
     """Admin-only: manage a user."""
     serializer_class = UserProfileSerializer
     permission_classes = [IsAuthenticated]
-    queryset = User.objects.all()
+
+    def get_queryset(self):
+        return User.objects.all()
+
 
     def dispatch(self, request, *args, **kwargs):
         if hasattr(request, 'user') and not request.user.is_anonymous and not request.user.is_admin:

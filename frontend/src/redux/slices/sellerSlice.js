@@ -15,6 +15,18 @@ export const registerSeller = createAsyncThunk(
   }
 );
 
+export const applyToBecomeSeller = createAsyncThunk(
+  'seller/apply',
+  async (formData, { rejectWithValue }) => {
+    try {
+      const res = await api.post('/seller/apply/', formData);
+      return res.data;
+    } catch (err) {
+      return rejectWithValue(err.response?.data || { error: 'Application failed' });
+    }
+  }
+);
+
 export const fetchSellerStore = createAsyncThunk(
   'seller/fetchStore',
   async (_, { rejectWithValue }) => {

@@ -4,6 +4,7 @@ from . import views
 urlpatterns = [
     # Seller self-service
     path('seller/register/',   views.SellerRegisterView.as_view(),    name='seller-register'),
+    path('seller/apply/',      views.ApplyToBecomeSellerView.as_view(), name='seller-apply'),
     path('seller/store/',      views.SellerStoreView.as_view(),        name='seller-store'),
     path('seller/dashboard/',  views.SellerDashboardView.as_view(),    name='seller-dashboard'),
     path('seller/products/',   views.SellerProductListView.as_view(),  name='seller-products'),

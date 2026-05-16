@@ -37,10 +37,18 @@ class LoginSerializer(serializers.Serializer):
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
+    store_status = serializers.SerializerMethodField()
+
     class Meta:
         model = User
-        fields = ('id', 'email', 'full_name', 'phone', 'avatar', 'role', 'date_joined')
+        fields = ('id', 'email', 'full_name', 'phone', 'avatar', 'role', 'date_joined', 'store_status')
         read_only_fields = ('id', 'email', 'role', 'date_joined')
+
+    def get_store_status(self, obj):
+        try:
+            return obj.store.status
+        except:
+            return None
 
 
 class ChangePasswordSerializer(serializers.Serializer):

@@ -7,7 +7,7 @@ class CategorySerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Category
-        fields = ('id', 'name', 'slug', 'description', 'image', 'product_count')
+        fields = ('id', 'name', 'slug', 'description', 'image', 'parent', 'product_count')
 
 
 class ProductImageSerializer(serializers.ModelSerializer):
@@ -43,13 +43,18 @@ class ProductListSerializer(serializers.ModelSerializer):
     review_count = serializers.ReadOnlyField()
     primary_image = ProductImageSerializer(read_only=True)
     category_name = serializers.ReadOnlyField()
+    seller_name = serializers.SerializerMethodField()
+
+    def get_seller_name(self, obj):
+        return obj.seller.store_name if obj.seller else "Admin"
 
     class Meta:
         model = Product
         fields = (
             'id', 'name', 'slug', 'price', 'discount_price', 'effective_price',
             'discount_percentage', 'stock', 'in_stock', 'is_featured', 'is_active',
-            'average_rating', 'review_count', 'primary_image', 'category_name', 'tags',
+            'approval_status', 'average_rating', 'review_count', 'primary_image', 
+            'category_name', 'tags', 'seller', 'seller_name',
         )
 
 
@@ -73,6 +78,8 @@ class ProductCreateUpdateSerializer(serializers.ModelSerializer):
     class Meta:
         model = Product
         exclude = ('slug', 'created_at', 'updated_at')
+        # Crucial: Prevent non-admins from injecting approved status in form submissions
+        read_only_fields = ('approval_status', 'sku')
 
 
 class WishlistSerializer(serializers.ModelSerializer):

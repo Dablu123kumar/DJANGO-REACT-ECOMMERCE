@@ -22,6 +22,7 @@ import OrderDetail from './pages/OrderDetail';
 import Wishlist from './pages/Wishlist';
 import AdminDashboard from './pages/AdminDashboard';
 import SellerRegister from './pages/SellerRegister';
+import ApplySeller from './pages/ApplySeller';
 import SellerPending from './pages/SellerPending';
 import SellerDashboard from './pages/SellerDashboard';
 import SellerProductForm from './pages/SellerProductForm';
@@ -108,6 +109,7 @@ function AppRoutes() {
 
       {/* Seller routes */}
       <Route path="/seller/register" element={<SellerRegister />} />
+      <Route path="/seller/apply" element={<PrivateRoute><AppLayout><ApplySeller /></AppLayout></PrivateRoute>} />
       <Route path="/seller/pending" element={<PrivateRoute><SellerPending /></PrivateRoute>} />
       <Route path="/seller/dashboard" element={<SellerRoute><SellerDashboard /></SellerRoute>} />
       <Route path="/seller/products/new" element={<SellerRoute><SellerProductForm /></SellerRoute>} />

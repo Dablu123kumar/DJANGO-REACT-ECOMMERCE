@@ -23,24 +23,49 @@ class IsAdminOrReadOnly(BasePermission):
         return request.user and request.user.is_authenticated and request.user.is_admin
 
 
+class IsAdminOrSellerOrReadOnly(BasePermission):
+    """Allow read for all; write only for admin or approved sellers."""
+    def has_permission(self, request, view):
+        from rest_framework.permissions import SAFE_METHODS
+        if request.method in SAFE_METHODS:
+            return True
+        if not request.user or not request.user.is_authenticated:
+            return False
+        # Admin always permitted
+        if request.user.is_admin:
+            return True
+        # Role based for sellers
+        return request.user.role == 'seller'
+
+
 class CategoryListView(generics.ListCreateAPIView):
-    queryset = Category.objects.filter(is_active=True)
     serializer_class = CategorySerializer
-    permission_classes = [IsAdminOrReadOnly]
+    permission_classes = [IsAdminOrSellerOrReadOnly]
     filter_backends = [filters.SearchFilter]
     search_fields = ['name']
 
+    def get_queryset(self):
+        tenant = getattr(self.request, 'tenant', None)
+        qs = Category.objects.filter(is_active=True)
+        if tenant:
+            qs = qs.filter(tenant=tenant)
+        return qs
+
+
 
 class CategoryDetailView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Category.objects.all()
     serializer_class = CategorySerializer
     permission_classes = [IsAdminOrReadOnly]
     lookup_field = 'slug'
 
+    def get_queryset(self):
+        return Category.objects.all()
+
+
 
 class ProductListView(generics.ListCreateAPIView):
-    queryset = Product.objects.filter(is_active=True).select_related('category').prefetch_related('images', 'reviews')
     permission_classes = [IsAdminOrReadOnly]
+
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_class = ProductFilter
     search_fields = ['name', 'description', 'tags', 'category__name']
@@ -52,17 +77,45 @@ class ProductListView(generics.ListCreateAPIView):
             return ProductCreateUpdateSerializer
         return ProductListSerializer
 
+    def perform_create(self, serializer):
+        # Admin creations are auto-approved
+        if self.request.user.is_admin:
+            serializer.save(approval_status='approved')
+        else:
+            serializer.save()
+
     def get_queryset(self):
-        qs = super().get_queryset()
+        tenant = getattr(self.request, 'tenant', None)
+        qs = Product.objects.filter(is_active=True).select_related('category').prefetch_related('images', 'reviews')
+        
+        # Tenant filter
+        if tenant:
+            qs = qs.filter(tenant=tenant)
+
+        # Non-admins can only see products that are active AND explicitly approved
         if not (self.request.user.is_authenticated and self.request.user.is_admin):
-            qs = qs.filter(is_active=True)
+            qs = qs.filter(is_active=True, approval_status='approved')
         return qs
 
 
+
 class ProductDetailView(generics.RetrieveUpdateDestroyAPIView):
-    queryset = Product.objects.all().select_related('category').prefetch_related('images', 'reviews__user')
     permission_classes = [IsAdminOrReadOnly]
     lookup_field = 'slug'
+
+    def get_queryset(self):
+        qs = Product.objects.all().select_related('category').prefetch_related('images', 'reviews__user')
+        user = self.request.user
+        # Allow Admins to view everything
+        if user.is_authenticated and user.is_admin:
+            return qs
+        # Restrict general access to approved ONLY. 
+        # Edge case: Allow seller owner to view their own pending product detail.
+        if user.is_authenticated and hasattr(user, 'store'):
+            from django.db.models import Q
+            return qs.filter(Q(approval_status='approved', is_active=True) | Q(seller=user.store))
+        
+        return qs.filter(approval_status='approved', is_active=True)
 
     def get_serializer_class(self):
         if self.request.method in ['PUT', 'PATCH']:
@@ -127,9 +180,16 @@ class ProductImageDeleteView(APIView):
 
 
 class FeaturedProductsView(generics.ListAPIView):
-    queryset = Product.objects.filter(is_featured=True, is_active=True).prefetch_related('images')
     serializer_class = ProductListSerializer
     permission_classes = [AllowAny]
+
+    def get_queryset(self):
+        tenant = getattr(self.request, 'tenant', None)
+        qs = Product.objects.filter(is_featured=True, is_active=True, approval_status='approved')
+        if tenant:
+            qs = qs.filter(tenant=tenant)
+        return qs.prefetch_related('images')
+
 
 
 class ReviewListCreateView(generics.ListCreateAPIView):
@@ -190,3 +250,31 @@ class AdminProductStatsView(APIView):
             'active_products': active,
             'out_of_stock': oos,
         })
+
+
+class AdminProductApprovalView(APIView):
+    """Allows administrators to quickly Approve or Reject a submitted product."""
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request, pk, action):
+        if not request.user.is_admin:
+            return Response({'error': 'Not authorized'}, status=status.HTTP_403_FORBIDDEN)
+        
+        product = get_object_or_404(Product, pk=pk)
+        
+        if action == 'approve':
+            product.approval_status = 'approved'
+        elif action == 'reject':
+            product.approval_status = 'rejected'
+        elif action == 'pending':
+            product.approval_status = 'pending'
+        else:
+            return Response({'error': 'Invalid action (must be approve, reject, or pending)'}, status=status.HTTP_400_BAD_REQUEST)
+        
+        product.save()
+        
+        return Response({
+            'message': f'Product {action}d successfully',
+            'id': product.id,
+            'approval_status': product.approval_status
+        }, status=status.HTTP_200_OK)

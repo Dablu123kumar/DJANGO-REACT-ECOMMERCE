@@ -71,6 +71,14 @@ class SellerRegisterSerializer(serializers.Serializer):
         return user
 
 
+class StoreApplySerializer(serializers.ModelSerializer):
+    """Collects only Store info for a logged-in user applying."""
+    class Meta:
+        model = Store
+        fields = ('store_name', 'description', 'phone', 'address', 'website', 'gstin')
+        extra_kwargs = {'store_name': {'required': True}}
+
+
 class AdminStoreSerializer(serializers.ModelSerializer):
     """Full admin view including rejection reason and action fields."""
     owner_email   = serializers.CharField(source='user.email',     read_only=True)
