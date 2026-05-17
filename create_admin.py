@@ -16,7 +16,6 @@ def create_admin():
         print("Creating superuser admin@example.com...")
         User.objects.create_superuser(
             email='admin@example.com',
-            username='admin',
             password='adminpassword123',
             tenant=tenant
         )
