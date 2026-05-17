@@ -299,7 +299,16 @@ export default function SellerDashboard() {
                                   </div>
                                 </td>
                                 <td className="px-4 py-3 font-medium text-white max-w-[200px] truncate" title={p.name}>{p.name}</td>
-                                <td className="px-4 py-3 text-dark-300 font-semibold">₹{parseFloat(p.effective_price || p.price).toLocaleString('en-IN')}</td>
+                                <td className="px-4 py-3 text-dark-300 font-semibold">
+                                  {p.discount_price ? (
+                                    <div className="flex flex-col leading-tight mt-1">
+                                      <span>₹{parseFloat(p.effective_price).toLocaleString('en-IN')}</span>
+                                      <span className="text-[10px] text-dark-500 line-through">₹{parseFloat(p.price).toLocaleString('en-IN')}</span>
+                                    </div>
+                                  ) : (
+                                    <span>₹{parseFloat(p.price).toLocaleString('en-IN')}</span>
+                                  )}
+                                </td>
                                 <td className="px-4 py-3">
                                   <span className={`font-mono px-2 py-0.5 rounded-md text-xs border ${p.stock === 0 ? 'text-danger border-red-950 bg-red-950/20' : p.stock <= 10 ? 'text-amber-400 border-amber-950 bg-amber-950/20' : 'text-green-400 border-green-950 bg-green-950/20'}`}>
                                     {p.stock}
