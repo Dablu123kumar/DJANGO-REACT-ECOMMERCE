@@ -110,6 +110,7 @@ STORAGES = {
         "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
     },
 }
+WHITENOISE_MANIFEST_STRICT = False
 
 # Cloudinary Configuration
 CLOUDINARY_STORAGE = {
