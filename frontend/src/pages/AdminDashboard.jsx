@@ -113,6 +113,15 @@ export default function AdminDashboard() {
     } catch { toast.error('Could not delete product'); }
   };
 
+  const handleDeleteCategory = async (slug) => {
+    if (!confirm('Delete this category? This might affect products!')) return;
+    try {
+      await api.delete(`/categories/${slug}/`);
+      loadData(); // Refresh categories
+      toast.success('Category deleted');
+    } catch { toast.error('Could not delete category'); }
+  };
+
   const handleOrderStatus = async (orderId, status) => {
     try {
       const res = await api.patch(`/orders/${orderId}/update/`, { order_status: status });
@@ -477,7 +486,7 @@ export default function AdminDashboard() {
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead><tr className="table-header">
-                      {['Image', 'Name', 'Slug', 'Subcategories', 'Total Products'].map(h => (
+                      {['Image', 'Name', 'Slug', 'Subcategories', 'Total Products', 'Actions'].map(h => (
                         <th key={h} className="px-4 py-3 text-left">{h}</th>
                       ))}
                     </tr></thead>
@@ -499,6 +508,15 @@ export default function AdminDashboard() {
                             {categories.filter(sc => sc.parent === c.id).length} items
                           </td>
                           <td className="px-4 py-3 text-dark-400 font-bold">{c.product_count || 0}</td>
+                          <td className="px-4 py-3">
+                            <div className="flex items-center gap-1.5">
+                              <button onClick={() => alert('View Category feature coming soon!')} className="btn-ghost p-1.5 rounded-lg text-dark-400 hover:text-white hover:bg-dark-700" title="View"><Eye className="w-4 h-4" /></button>
+                              <button onClick={() => alert('Edit Category feature coming soon!')} className="btn-ghost p-1.5 rounded-lg text-dark-400 hover:text-primary-400 hover:bg-dark-700" title="Edit">
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                              </button>
+                              <button onClick={() => handleDeleteCategory(c.slug)} className="btn-ghost p-1.5 rounded-lg text-dark-400 hover:text-danger hover:bg-dark-700" title="Delete"><Trash2 className="w-4 h-4" /></button>
+                            </div>
+                          </td>
                         </tr>
                       ))}
                     </tbody>
@@ -519,7 +537,7 @@ export default function AdminDashboard() {
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead><tr className="table-header">
-                      {['Image', 'Subcategory', 'Parent Category', 'Slug', 'Total Products'].map(h => (
+                      {['Image', 'Subcategory', 'Parent Category', 'Slug', 'Total Products', 'Actions'].map(h => (
                         <th key={h} className="px-4 py-3 text-left">{h}</th>
                       ))}
                     </tr></thead>
@@ -545,6 +563,15 @@ export default function AdminDashboard() {
                             </td>
                             <td className="px-4 py-3 text-dark-300">{c.slug}</td>
                             <td className="px-4 py-3 text-dark-400 font-bold">{c.product_count || 0}</td>
+                            <td className="px-4 py-3">
+                              <div className="flex items-center gap-1.5">
+                                <button onClick={() => alert('View Subcategory feature coming soon!')} className="btn-ghost p-1.5 rounded-lg text-dark-400 hover:text-white hover:bg-dark-700" title="View"><Eye className="w-4 h-4" /></button>
+                                <button onClick={() => alert('Edit Subcategory feature coming soon!')} className="btn-ghost p-1.5 rounded-lg text-dark-400 hover:text-primary-400 hover:bg-dark-700" title="Edit">
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                                </button>
+                                <button onClick={() => handleDeleteCategory(c.slug)} className="btn-ghost p-1.5 rounded-lg text-dark-400 hover:text-danger hover:bg-dark-700" title="Delete"><Trash2 className="w-4 h-4" /></button>
+                              </div>
+                            </td>
                           </tr>
                         );
                       })}
