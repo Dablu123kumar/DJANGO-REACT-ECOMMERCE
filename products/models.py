@@ -100,12 +100,14 @@ class Product(TenantAwareModel):
 
     @property
     def effective_price(self):
-        return self.discount_price if self.discount_price else self.price
+        if self.discount_price:
+            return max(self.price - self.discount_price, 0)
+        return self.price
 
     @property
     def discount_percentage(self):
         if self.discount_price and self.price > 0:
-            return round((1 - self.discount_price / self.price) * 100)
+            return round((self.discount_price / self.price) * 100)
         return 0
 
     @property
