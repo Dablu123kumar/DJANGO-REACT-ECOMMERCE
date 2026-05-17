@@ -1,9 +1,9 @@
-import { useState } from 'react';
-import { X, Loader2, PlusCircle } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { X, Loader2, PlusCircle, Edit2 } from 'lucide-react';
 import api from '../services/api';
 import toast from 'react-hot-toast';
 
-export default function CreateCategoryModal({ isOpen, onClose, onSuccess, isSubcategory = false, parentCategories = [] }) {
+export default function CreateCategoryModal({ isOpen, onClose, onSuccess, isSubcategory = false, parentCategories = [], initialData = null }) {
 
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
@@ -11,6 +11,18 @@ export default function CreateCategoryModal({ isOpen, onClose, onSuccess, isSubc
     image: null,
     parent: '',
   });
+
+  useEffect(() => {
+    if (initialData) {
+      setForm({
+        name: initialData.name || '',
+        image: null, // Keep null, we only update image if a new one is selected
+        parent: initialData.parent || '',
+      });
+    } else {
+      setForm({ name: '', image: null, parent: '' });
+    }
+  }, [initialData, isOpen]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -34,16 +46,24 @@ export default function CreateCategoryModal({ isOpen, onClose, onSuccess, isSubc
         formData.append('parent', form.parent);
       }
 
-      const res = await api.post('/categories/', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' }
-      });
-      toast.success(`${isSubcategory ? 'Subcategory' : 'Category'} created successfully!`);
+      let res;
+      if (initialData) {
+        res = await api.patch(`/categories/${initialData.slug}/`, formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        toast.success(`${isSubcategory ? 'Subcategory' : 'Category'} updated successfully!`);
+      } else {
+        res = await api.post('/categories/', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        toast.success(`${isSubcategory ? 'Subcategory' : 'Category'} created successfully!`);
+      }
       
       setForm({ name: '', image: null, parent: '' });
       if (onSuccess) onSuccess(res.data);
       onClose();
     } catch (err) {
-      const errMsg = err.response?.data?.name || err.response?.data?.detail || `Failed to create ${isSubcategory ? 'subcategory' : 'category'}`;
+      const errMsg = err.response?.data?.name || err.response?.data?.detail || `Failed to ${initialData ? 'update' : 'create'} ${isSubcategory ? 'subcategory' : 'category'}`;
       toast.error(Array.isArray(errMsg) ? errMsg[0] : errMsg);
     } finally {
       setSaving(false);
@@ -59,8 +79,10 @@ export default function CreateCategoryModal({ isOpen, onClose, onSuccess, isSubc
         {/* Header */}
         <div className="flex items-center justify-between p-4 border-b border-dark-700 bg-dark-800">
           <h3 className="text-lg font-bold text-white flex items-center gap-2 font-heading">
-            <PlusCircle className="w-5 h-5 text-primary-400" />
-            {isSubcategory ? 'Create Subcategory' : 'Create Category'}
+            {initialData ? <Edit2 className="w-5 h-5 text-primary-400" /> : <PlusCircle className="w-5 h-5 text-primary-400" />}
+            {initialData 
+              ? (isSubcategory ? 'Edit Subcategory' : 'Edit Category')
+              : (isSubcategory ? 'Create Subcategory' : 'Create Category')}
           </h3>
           <button onClick={onClose} className="btn-ghost p-1.5 rounded-lg text-dark-400 hover:text-white">
             <X className="w-5 h-5" />
@@ -102,11 +124,15 @@ export default function CreateCategoryModal({ isOpen, onClose, onSuccess, isSubc
           <div>
             <label className="label">{isSubcategory ? 'Subcategory Image' : 'Category Image'}</label>
             <div className="mt-1 flex items-center gap-4">
-              {form.image && (
+              {form.image ? (
                 <div className="w-16 h-16 rounded-lg overflow-hidden border border-dark-600">
                   <img src={URL.createObjectURL(form.image)} alt="Preview" className="w-full h-full object-cover" />
                 </div>
-              )}
+              ) : initialData?.image ? (
+                <div className="w-16 h-16 rounded-lg overflow-hidden border border-dark-600 bg-dark-800 flex items-center justify-center p-1">
+                  <img src={initialData.image.startsWith('http') ? initialData.image : `${import.meta.env.VITE_API_BASE_URL?.replace('/api', '') || 'http://localhost:8000'}${initialData.image}`} alt="Current" className="w-full h-full object-contain" />
+                </div>
+              ) : null}
               <div className="flex-1">
                 <input 
                   type="file" 
@@ -129,7 +155,11 @@ export default function CreateCategoryModal({ isOpen, onClose, onSuccess, isSubc
           <div className="pt-4 flex gap-3">
             <button type="button" onClick={onClose} className="btn-secondary flex-1 justify-center">Cancel</button>
             <button type="submit" disabled={saving} className="btn-primary flex-1 justify-center py-2.5">
-              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : (isSubcategory ? 'Create Subcategory' : 'Create Category')}
+              {saving ? <Loader2 className="w-4 h-4 animate-spin" /> : 
+                initialData 
+                  ? (isSubcategory ? 'Update Subcategory' : 'Update Category') 
+                  : (isSubcategory ? 'Create Subcategory' : 'Create Category')
+              }
             </button>
           </div>
         </form>
