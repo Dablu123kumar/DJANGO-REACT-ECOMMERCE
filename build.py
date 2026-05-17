@@ -23,6 +23,7 @@ def build():
     print("Setting up default tenant...")
     try:
         run_cmd("python setup_default_tenant.py")
+        run_cmd("python setup_vogue.py")
     except Exception as e:
         print(f"Warning: Tenant setup failed: {e}")
         
