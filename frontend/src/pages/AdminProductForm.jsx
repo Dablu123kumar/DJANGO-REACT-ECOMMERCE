@@ -116,19 +116,18 @@ export default function AdminProductForm() {
 
   const uploadImages = async (pId) => {
     if (selectedImages.length === 0) return;
-    for (let i = 0; i < selectedImages.length; i++) {
+    const promises = selectedImages.map((file, i) => {
       const formData = new FormData();
-      formData.append('image', selectedImages[i]);
-      if (i === 0 && existingImages.length === 0) {
-        formData.append('is_primary', 'true');
-      }
-      try {
-        await api.post(`/products/${pId}/images/`, formData, {
-          headers: { 'Content-Type': 'multipart/form-data' }
-        });
-      } catch (err) {
-        console.error('Image upload failed', err);
-      }
+      formData.append('image', file);
+      if (i === 0 && existingImages.length === 0) formData.append('is_primary', 'true');
+      return api.post(`/products/${pId}/images/`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+    });
+    try {
+      await Promise.all(promises);
+    } catch (err) {
+      console.error('Image upload failed', err);
     }
   };
 
@@ -151,17 +150,18 @@ export default function AdminProductForm() {
 
       if (isEdit) {
         await api.put(`/products/${slug}/`, payload);
-        toast.success('Product updated!');
       } else {
         const res = await api.post('/products/', payload);
         savedProductId = res.data.id;
-        toast.success('Product created!');
       }
 
       if (savedProductId && selectedImages.length > 0) {
-        toast.loading('Uploading & compressing images...', { id: 'img-upload' });
+        toast.loading('Processing images...', { id: 'img-upload' });
         await uploadImages(savedProductId);
+        toast.dismiss('img-upload');
       }
+      
+      toast.success(isEdit ? 'Product updated completely!' : 'Product created completely!');
       navigate('/admin', { state: { activeTab: 'products' } });
     } catch (err) {
       toast.error(err.response?.data?.detail || 'Failed to save product');

@@ -53,17 +53,10 @@ export default function ProductDetail() {
     ? (currentImage.image.startsWith('http') ? currentImage.image : `${API_BASE}${currentImage.image}`)
     : null;
 
-  const handleAddToCart = async () => {
+  const handleAddToCart = () => {
     if (!user) { navigate('/login'); return; }
-    setAddingToCart(true);
-    try {
-      await dispatch(addToCart({ product_id: product.id, quantity })).unwrap();
-      toast.success(`${quantity} item(s) added to cart!`);
-    } catch (err) {
-      toast.error(err?.error || 'Could not add to cart');
-    } finally {
-      setAddingToCart(false);
-    }
+    dispatch(addToCart({ product_id: product.id, quantity }));
+    toast.success(`${quantity} item(s) added to cart!`);
   };
 
   const handleWishlist = async () => {
@@ -192,9 +185,9 @@ export default function ProductDetail() {
 
             {/* Actions */}
             <div className="flex gap-3 mb-6">
-              <button onClick={handleAddToCart} disabled={!product.in_stock || addingToCart} className="btn-primary btn-lg flex-1 justify-center">
-                {addingToCart ? <Loader2 className="w-5 h-5 animate-spin" /> : <ShoppingCart className="w-5 h-5" />}
-                {addingToCart ? 'Adding...' : 'Add to Cart'}
+              <button onClick={handleAddToCart} disabled={!product.in_stock} className="btn-primary btn-lg flex-1 justify-center">
+                <ShoppingCart className="w-5 h-5" />
+                Add to Cart
               </button>
               <button onClick={handleWishlist} className={`btn-icon w-12 h-12 rounded-xl border ${wishlisted ? 'bg-red-500/20 border-red-500/50 text-red-400' : 'border-dark-600 text-dark-400 hover:text-red-400 hover:border-red-500/50'} transition-all`}>
                 <Heart className="w-5 h-5" fill={wishlisted ? 'currentColor' : 'none'} />

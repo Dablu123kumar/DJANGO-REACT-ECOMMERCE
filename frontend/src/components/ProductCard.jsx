@@ -19,18 +19,11 @@ export default function ProductCard({ product }) {
   const img = product.primary_image?.image;
   const imageUrl = img ? (img.startsWith('http') ? img : `${API_BASE}${img}`) : null;
 
-  const handleAddToCart = async (e) => {
+  const handleAddToCart = (e) => {
     e.preventDefault();
     if (!user) { navigate('/login'); return; }
-    setAddingToCart(true);
-    try {
-      await dispatch(addToCart({ product_id: product.id, quantity: 1 })).unwrap();
-      toast.success('Added to cart!');
-    } catch (err) {
-      toast.error(err?.error || 'Could not add to cart');
-    } finally {
-      setAddingToCart(false);
-    }
+    dispatch(addToCart({ product_id: product.id, quantity: 1 }));
+    toast.success('Added to cart!');
   };
 
   const handleWishlist = async (e) => {
@@ -93,7 +86,7 @@ export default function ProductCard({ product }) {
           </button>
           <button
             onClick={handleAddToCart}
-            disabled={!product.in_stock || addingToCart}
+            disabled={!product.in_stock}
             className="w-9 h-9 rounded-full bg-primary-600 text-white flex items-center justify-center hover:bg-primary-500 transition-all duration-200 disabled:opacity-50"
           >
             <ShoppingCart className="w-4 h-4" />

@@ -67,6 +67,11 @@ const cartSlice = createSlice({
       .addCase(fetchCart.pending, (s) => { s.loading = true; })
       .addCase(fetchCart.fulfilled, setCart)
       .addCase(fetchCart.rejected, (s) => { s.loading = false; })
+      .addCase(addToCart.pending, (state, action) => {
+        // Optimistic UI update for Add to Cart so the navbar badge updates instantly
+        const { quantity = 1 } = action.meta.arg;
+        state.total_items += quantity;
+      })
       .addCase(addToCart.fulfilled, setCart)
       .addCase(updateCartItem.pending, (state, action) => {
         // Optimistic UI update for quantity change

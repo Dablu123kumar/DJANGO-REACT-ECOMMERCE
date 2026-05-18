@@ -119,17 +119,18 @@ export default function SellerProductForm() {
 
   const uploadImages = async (pId) => {
     if (selectedImages.length === 0) return;
-    for (let i = 0; i < selectedImages.length; i++) {
+    const promises = selectedImages.map((file, i) => {
       const formData = new FormData();
-      formData.append('image', selectedImages[i]);
+      formData.append('image', file);
       if (i === 0 && existingImages.length === 0) formData.append('is_primary', 'true');
-      try {
-        await api.post(`/products/${pId}/images/`, formData, {
-          headers: { 'Content-Type': 'multipart/form-data' }
-        });
-      } catch (err) {
-        console.error('Image fail', err);
-      }
+      return api.post(`/products/${pId}/images/`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+      });
+    });
+    try {
+      await Promise.all(promises);
+    } catch (err) {
+      console.error('Image fail', err);
     }
   };
 
@@ -152,20 +153,18 @@ export default function SellerProductForm() {
 
       if (isEdit) {
         await api.put(`/seller/products/${id}/`, payload);
-        toast.success('Product updated!');
       } else {
         const res = await api.post('/seller/products/', payload);
         savedProductId = res.data.id;
-        toast.success('Product created!');
       }
 
-      
       if (savedProductId && selectedImages.length > 0) {
-        toast.loading('Compressing & uploading images...', { id: 'upload' });
+        toast.loading('Processing images...', { id: 'upload' });
         await uploadImages(savedProductId);
-        toast.success('Images uploaded!', { id: 'upload' });
+        toast.dismiss('upload');
       }
       
+      toast.success(isEdit ? 'Product updated completely!' : 'Product created completely!');
       dispatch(fetchSellerProducts());
       navigate('/seller/dashboard', { state: { activeTab: 'products' } });
     } catch (err) {
