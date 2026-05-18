@@ -41,7 +41,10 @@ class Category(TenantAwareModel):
 
     @property
     def product_count(self):
-        return self.products.filter(is_active=True).count()
+        # Sum direct products and products in all subcategories
+        direct = self.products.filter(is_active=True).count()
+        indirect = sum(child.products.filter(is_active=True).count() for child in self.children.all())
+        return direct + indirect
 
 
 class Product(TenantAwareModel):
