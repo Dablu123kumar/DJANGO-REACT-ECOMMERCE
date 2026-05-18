@@ -3,7 +3,7 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny
 from rest_framework import status, generics
 from django.utils import timezone
-from django.db.models import Sum, Count, Q
+from django.db.models import Sum, Count, Q, F
 from .models import Store
 from .serializers import StoreSerializer, SellerRegisterSerializer, AdminStoreSerializer, StoreApplySerializer
 
@@ -106,7 +106,7 @@ class SellerDashboardView(APIView):
         total_orders = order_items.values('order').distinct().count()
         total_revenue = order_items.filter(
             order__payment_status='paid'
-        ).aggregate(r=Sum('total_price'))['r'] or 0
+        ).aggregate(r=Sum(F('unit_price') * F('quantity')))['r'] or 0
 
         pending_orders = order_items.filter(
             order__order_status='pending'
