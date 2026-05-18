@@ -68,7 +68,25 @@ const cartSlice = createSlice({
       .addCase(fetchCart.fulfilled, setCart)
       .addCase(fetchCart.rejected, (s) => { s.loading = false; })
       .addCase(addToCart.fulfilled, setCart)
+      .addCase(updateCartItem.pending, (state, action) => {
+        // Optimistic UI update for quantity change
+        const { item_id, quantity } = action.meta.arg;
+        const item = state.items.find(i => i.id === item_id);
+        if (item) {
+          item.quantity = quantity;
+          item.total_price = parseFloat(item.unit_price) * quantity;
+          state.subtotal = state.items.reduce((sum, i) => sum + parseFloat(i.total_price), 0);
+          state.total_items = state.items.reduce((sum, i) => sum + i.quantity, 0);
+        }
+      })
       .addCase(updateCartItem.fulfilled, setCart)
+      .addCase(removeCartItem.pending, (state, action) => {
+        // Optimistic UI update for removal
+        const item_id = action.meta.arg;
+        state.items = state.items.filter(i => i.id !== item_id);
+        state.subtotal = state.items.reduce((sum, i) => sum + parseFloat(i.total_price), 0);
+        state.total_items = state.items.reduce((sum, i) => sum + i.quantity, 0);
+      })
       .addCase(removeCartItem.fulfilled, setCart)
       .addCase(clearCart.fulfilled, setCart);
   },
