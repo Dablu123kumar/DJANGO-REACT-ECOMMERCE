@@ -29,11 +29,6 @@ class ReviewCreateSerializer(serializers.ModelSerializer):
         model = Review
         fields = ('rating', 'title', 'comment')
 
-    def create(self, validated_data):
-        validated_data['user'] = self.context['request'].user
-        validated_data['product'] = self.context['product']
-        return super().create(validated_data)
-
 
 class ProductListSerializer(serializers.ModelSerializer):
     effective_price = serializers.ReadOnlyField()
