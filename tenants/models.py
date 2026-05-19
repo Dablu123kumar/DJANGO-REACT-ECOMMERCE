@@ -7,6 +7,14 @@ class Tenant(models.Model):
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
+    # SMTP Configuration
+    email_host = models.CharField(max_length=255, blank=True, null=True, default='smtp.gmail.com')
+    email_port = models.IntegerField(blank=True, null=True, default=587)
+    email_use_tls = models.BooleanField(default=True)
+    email_host_user = models.CharField(max_length=255, blank=True, null=True)
+    email_host_password = models.CharField(max_length=255, blank=True, null=True)
+    default_from_email = models.CharField(max_length=255, blank=True, null=True)
+
     def __str__(self):
         return f"{self.name} ({self.tenant_id})"
 

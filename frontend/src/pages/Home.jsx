@@ -290,7 +290,7 @@ export default function Home() {
             
             <div className="grid grid-cols-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-5">
               {categories
-                .filter(cat => cat.slug !== 'electronics' && cat.product_count > 0)
+                .filter(cat => !cat.parent && cat.slug !== 'electronics' && cat.product_count > 0)
                 .sort((a, b) => (b.product_count || 0) - (a.product_count || 0))
                 .slice(0, 12)
                 .map((cat) => {
