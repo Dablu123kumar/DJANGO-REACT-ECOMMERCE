@@ -34,6 +34,7 @@ export default function SellerProductForm() {
     stock: 0,
     tags: '',
     is_active: true,
+    sizes: '',
   });
 
   const loadCategories = async () => {
@@ -79,6 +80,7 @@ export default function SellerProductForm() {
             stock: p.stock || 0,
             tags: p.tags || '',
             is_active: p.is_active ?? true,
+            sizes: p.sizes || '',
           });
         } catch {
           toast.error('Failed to load product');
@@ -91,7 +93,6 @@ export default function SellerProductForm() {
     init();
   }, [id, isEdit, navigate]);
 
-  // Update derived backend flat payload dynamically
   useEffect(() => {
     setField('category', subCat || mainCat);
   }, [mainCat, subCat]);
@@ -177,21 +178,21 @@ export default function SellerProductForm() {
   const currentSubs = categories.filter(c => c.parent === parseInt(mainCat));
 
   if (loading) return (
-    <div className="min-h-screen pt-24 flex items-center justify-center bg-dark-900">
-      <Loader2 className="w-8 h-8 text-primary-400 animate-spin" />
+    <div className="min-h-screen pt-24 flex items-center justify-center bg-[var(--bg-page)]">
+      <Loader2 className="w-8 h-8 text-primary-500 animate-spin" />
     </div>
   );
 
   return (
-    <div className="min-h-screen pt-24 pb-16 bg-dark-900 px-4">
+    <div className="min-h-screen pt-24 pb-16 bg-[var(--bg-page)] px-4 transition-colors duration-300">
       <div className="max-w-3xl mx-auto">
         <div className="mb-6 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Link to="/seller/dashboard" className="btn-ghost p-2 rounded-xl text-dark-400 hover:text-white">
+            <Link to="/seller/dashboard" className="btn-ghost p-2 rounded-xl text-[var(--text-muted)] hover:text-[var(--text-primary)]">
               <ArrowLeft className="w-5 h-5" />
             </Link>
-            <h1 className="text-2xl font-heading font-bold text-white flex items-center gap-2">
-              <Package className="w-6 h-6 text-primary-400" />
+            <h1 className="text-2xl font-heading font-bold text-[var(--text-primary)] flex items-center gap-2">
+              <Package className="w-6 h-6 text-primary-500" />
               {isEdit ? 'Edit Product' : 'Add New Product'}
             </h1>
           </div>
@@ -209,11 +210,11 @@ export default function SellerProductForm() {
               <div>
                 <div className="flex items-center justify-between mb-1.5">
                   <label className="label mb-0">Main Category *</label>
-                  <button type="button" onClick={() => setIsCatModalOpen(true)} className="text-xs flex items-center gap-1 text-primary-400 hover:text-white transition-colors">
+                  <button type="button" onClick={() => setIsCatModalOpen(true)} className="text-xs flex items-center gap-1 text-primary-500 hover:text-primary-600 transition-colors font-medium">
                     <Plus className="w-3 h-3" /> Create New
                   </button>
                 </div>
-                <select className="input" required value={mainCat} onChange={e => { setMainCat(e.target.value); setSubCat(''); }}>
+                <select className="input" required value={mainCat} onChange={e => { setMainCat(e.target.value); setSubCat(''); setField('sizes', ''); }}>
                   <option value="">-- Select --</option>
                   {topCats.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </select>
@@ -221,7 +222,7 @@ export default function SellerProductForm() {
 
               <div>
                 <label className="label">Subcategory</label>
-                <select className="input" value={subCat} onChange={e => setSubCat(e.target.value)} disabled={!mainCat || currentSubs.length === 0}>
+                <select className="input" value={subCat} onChange={e => { setSubCat(e.target.value); setField('sizes', ''); }} disabled={!mainCat || currentSubs.length === 0}>
                    <option value="">{currentSubs.length > 0 ? "Select Subcategory (Optional)" : "No subcategories available"}</option>
                    {currentSubs.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </select>
@@ -253,22 +254,99 @@ export default function SellerProductForm() {
             </div>
 
             <div>
-              <label className="label">Tags <span className="text-dark-500">(comma split)</span></label>
+              <label className="label">Tags <span className="text-[var(--text-subtle)]">(comma split)</span></label>
               <input className="input" placeholder="tag1, tag2"
                 value={form.tags} onChange={e => setField('tags', e.target.value)} />
             </div>
+
+            {(() => {
+              const isClothing = (name, slug) => {
+                const check = (str) => {
+                  if (!str) return false;
+                  const s = str.toLowerCase();
+                  return s.includes('cloth') || s.includes('wear') || s.includes('dress') || 
+                         s.includes('shirt') || s.includes('pant') || s.includes('jean') || 
+                         s.includes('top') || s.includes('suit') || s.includes('gown') || 
+                         s.includes('saree') || s.includes('kurta') || s.includes('fashion');
+                };
+                return check(name) || check(slug);
+              };
+
+              const isShoes = (name, slug) => {
+                const check = (str) => {
+                  if (!str) return false;
+                  const s = str.toLowerCase();
+                  return s.includes('shoe') || s.includes('footwear') || s.includes('boot') || 
+                         s.includes('sandal') || s.includes('sneaker') || s.includes('heel');
+                };
+                return check(name) || check(slug);
+              };
+
+              const mainCatObj = categories.find(c => c.id === parseInt(mainCat));
+              const subCatObj = categories.find(c => c.id === parseInt(subCat));
+
+              const showClothing = (mainCatObj && isClothing(mainCatObj.name, mainCatObj.slug)) || 
+                                   (subCatObj && isClothing(subCatObj.name, subCatObj.slug));
+              const showShoes = (mainCatObj && isShoes(mainCatObj.name, mainCatObj.slug)) || 
+                                (subCatObj && isShoes(subCatObj.name, subCatObj.slug));
+
+              if (!showClothing && !showShoes) return null;
+
+              const sizeOptions = showClothing 
+                ? ['XS', 'S', 'M', 'L', 'XL', 'XXL']
+                : ['6', '7', '8', '9', '10', '11', '12'];
+
+              const cleanSizes = form.sizes 
+                ? form.sizes.split(',').map(s => s.trim()).filter(s => s !== '') 
+                : [];
+
+              const toggleSize = (size) => {
+                let newSizes;
+                if (cleanSizes.includes(size)) {
+                  newSizes = cleanSizes.filter(s => s !== size);
+                } else {
+                  newSizes = [...cleanSizes, size];
+                }
+                setField('sizes', newSizes.join(','));
+              };
+
+              return (
+                <div className="pt-4 border-t border-[var(--border-color)] animate-slide-down">
+                  <label className="label mb-2">Available Sizes *</label>
+                  <div className="flex flex-wrap gap-2">
+                    {sizeOptions.map(size => {
+                      const isSelected = cleanSizes.includes(size);
+                      return (
+                        <button
+                          key={size}
+                          type="button"
+                          onClick={() => toggleSize(size)}
+                          className={`py-1.5 px-4 rounded-xl text-xs font-bold border transition-all ${
+                            isSelected
+                              ? 'bg-primary-600 border-primary-500 text-white font-extrabold shadow-md'
+                              : 'bg-[var(--bg-surface-hover)] border-[var(--border-color)] text-[var(--text-secondary)] hover:border-primary-400 hover:text-[var(--text-primary)]'
+                          }`}
+                        >
+                          {size}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              );
+            })()}
             
-            <div className="pt-4 border-t border-dark-700">
+            <div className="pt-4 border-t border-[var(--border-color)]">
               <label className="label flex items-center gap-2 mb-4">
-                <ImageIcon className="w-3 h-3" /> Product Images
+                <ImageIcon className="w-3.5 h-3.5" /> Product Images
               </label>
               
               {existingImages.length > 0 && (
                 <div className="mb-4">
-                  <p className="text-xs text-dark-400 mb-2 uppercase tracking-wider font-semibold">Current</p>
+                  <p className="text-xs text-[var(--text-subtle)] mb-2 uppercase tracking-wider font-semibold">Current</p>
                   <div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-3">
                     {existingImages.map(img => (
-                      <div key={img.id} className="relative group rounded-xl overflow-hidden bg-dark-800 border border-dark-700 aspect-square">
+                      <div key={img.id} className="relative group rounded-xl overflow-hidden bg-[var(--bg-surface-hover)] border border-[var(--border-color)] aspect-square">
                         <img src={img.image} alt="" className="w-full h-full object-cover" />
                         <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
                           <button type="button" title="Delete Existing Image" onClick={() => handleDeleteExistingImage(img.id)} className="p-2 bg-red-500/20 text-red-400 hover:bg-red-500 hover:text-white rounded-full">
@@ -284,23 +362,23 @@ export default function SellerProductForm() {
               <div className="mb-4">
                 <div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-3">
                   {selectedImages.map((file, index) => (
-                    <div key={index} className="relative rounded-xl overflow-hidden bg-dark-800 border aspect-square">
+                    <div key={index} className="relative rounded-xl overflow-hidden bg-[var(--bg-surface-hover)] border border-primary-500/50 aspect-square">
                       <img src={URL.createObjectURL(file)} className="w-full h-full object-cover" />
                       <button type="button" title="Remove Selected Image" onClick={() => removeSelectedImage(index)} className="absolute top-2 right-2 p-1 bg-black/60 rounded-full"><X className="w-3 h-3 text-white"/></button>
                     </div>
                   ))}
-                  <label className="flex flex-col items-center justify-center aspect-square rounded-xl border-2 border-dashed border-dark-600 cursor-pointer">
-                    <ImageIcon className="w-6 h-6 text-dark-400 mb-2" />
-                    <span className="text-xs text-dark-400">Select</span>
+                  <label className="flex flex-col items-center justify-center aspect-square rounded-xl border-2 border-dashed border-[var(--border-color)] hover:border-primary-500 hover:bg-primary-500/5 cursor-pointer transition-colors">
+                    <ImageIcon className="w-6 h-6 text-[var(--text-subtle)] mb-2" />
+                    <span className="text-xs text-[var(--text-subtle)]">Select</span>
                     <input type="file" multiple accept="image/*" className="hidden" onChange={handleImageSelect} />
                   </label>
                 </div>
               </div>
             </div>
 
-            <div className="flex items-center gap-3 p-4 bg-dark-800 rounded-xl border border-dark-700">
-              <input type="checkbox" id="isActive" checked={form.is_active} onChange={e => setField('is_active', e.target.checked)} />
-              <label htmlFor="isActive" className="text-sm text-white cursor-pointer">Active in store</label>
+            <div className="flex items-center gap-3 p-4 bg-[var(--bg-surface-hover)] rounded-xl border border-[var(--border-color)]">
+              <input type="checkbox" id="isActive" checked={form.is_active} onChange={e => setField('is_active', e.target.checked)} className="w-4 h-4 rounded border-[var(--border-color)] text-primary-600 cursor-pointer" />
+              <label htmlFor="isActive" className="text-sm font-medium text-[var(--text-primary)] cursor-pointer select-none">Active in store</label>
             </div>
           </div>
 

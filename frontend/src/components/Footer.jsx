@@ -6,7 +6,7 @@ export default function Footer() {
   const socialIcons = [Globe, MessageCircle, Camera, Video];
 
   return (
-    <footer className="bg-dark-950 border-t border-dark-800 mt-20">
+    <footer className="bg-[var(--bg-page-alt)] border-t border-[var(--border-color)] mt-20 transition-colors duration-300">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* Brand */}
@@ -15,14 +15,18 @@ export default function Footer() {
               <div className="w-8 h-8 bg-gradient-to-br from-primary-500 to-cyan-500 rounded-lg flex items-center justify-center">
                 <Package className="w-5 h-5 text-white" />
               </div>
-              <span className="font-heading font-bold text-white text-lg">ShopElite</span>
+              <span className="font-heading font-bold text-[var(--text-primary)] text-lg">ShopElite</span>
             </Link>
-            <p className="text-sm text-dark-400 leading-relaxed mb-4">
+            <p className="text-sm text-[var(--text-muted)] leading-relaxed mb-4">
               Your premium destination for quality products. Fast delivery, secure payments, and exceptional customer service.
             </p>
             <div className="flex items-center gap-3">
               {socialIcons.map((Icon, i) => (
-                <a key={i} href="#" className="w-8 h-8 bg-dark-800 hover:bg-primary-600 rounded-lg flex items-center justify-center text-dark-400 hover:text-white transition-all duration-200">
+                <a 
+                  key={i} 
+                  href="#" 
+                  className="w-8 h-8 bg-[var(--bg-surface-hover)] border border-[var(--border-color)] hover:bg-primary-600 hover:border-primary-500 rounded-lg flex items-center justify-center text-[var(--text-muted)] hover:text-white transition-all duration-200"
+                >
                   <Icon className="w-4 h-4" />
                 </a>
               ))}
@@ -31,11 +35,11 @@ export default function Footer() {
 
           {/* Quick Links */}
           <div>
-            <h4 className="font-heading font-semibold text-white mb-4">Quick Links</h4>
+            <h4 className="font-heading font-semibold text-[var(--text-primary)] mb-4">Quick Links</h4>
             <ul className="space-y-2">
               {[['/', 'Home'], ['/products', 'Products'], ['/orders', 'My Orders'], ['/wishlist', 'Wishlist'], ['/profile', 'Profile']].map(([to, label]) => (
                 <li key={to}>
-                  <Link to={to} className="text-sm text-dark-400 hover:text-white flex items-center gap-1.5 group transition-colors">
+                  <Link to={to} className="text-sm text-[var(--text-muted)] hover:text-[var(--text-primary)] flex items-center gap-1.5 group transition-colors">
                     <ArrowRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
                     {label}
                   </Link>
@@ -46,11 +50,11 @@ export default function Footer() {
 
           {/* Categories */}
           <div>
-            <h4 className="font-heading font-semibold text-white mb-4">Categories</h4>
+            <h4 className="font-heading font-semibold text-[var(--text-primary)] mb-4">Categories</h4>
             <ul className="space-y-2">
               {['Electronics', 'Fashion', 'Home & Living', 'Sports', 'Books', 'Beauty'].map((cat) => (
                 <li key={cat}>
-                  <Link to={`/products?category=${cat.toLowerCase()}`} className="text-sm text-dark-400 hover:text-white flex items-center gap-1.5 group transition-colors">
+                  <Link to={`/products?category=${cat.toLowerCase()}`} className="text-sm text-[var(--text-muted)] hover:text-[var(--text-primary)] flex items-center gap-1.5 group transition-colors">
                     <ArrowRight className="w-3 h-3 opacity-0 group-hover:opacity-100 transition-opacity" />
                     {cat}
                   </Link>
@@ -61,30 +65,30 @@ export default function Footer() {
 
           {/* Contact */}
           <div>
-            <h4 className="font-heading font-semibold text-white mb-4">Contact Us</h4>
+            <h4 className="font-heading font-semibold text-[var(--text-primary)] mb-4">Contact Us</h4>
             <ul className="space-y-3">
-              <li className="flex items-start gap-2.5 text-sm text-dark-400">
-                <MapPin className="w-4 h-4 text-primary-400 mt-0.5 flex-shrink-0" />
+              <li className="flex items-start gap-2.5 text-sm text-[var(--text-muted)]">
+                <MapPin className="w-4 h-4 text-primary-500 mt-0.5 flex-shrink-0" />
                 <span>123 Commerce Street, Mumbai, Maharashtra 400001</span>
               </li>
-              <li className="flex items-center gap-2.5 text-sm text-dark-400">
-                <Phone className="w-4 h-4 text-primary-400 flex-shrink-0" />
+              <li className="flex items-center gap-2.5 text-sm text-[var(--text-muted)]">
+                <Phone className="w-4 h-4 text-primary-500 flex-shrink-0" />
                 <span>+91 98765 43210</span>
               </li>
-              <li className="flex items-center gap-2.5 text-sm text-dark-400">
-                <Mail className="w-4 h-4 text-primary-400 flex-shrink-0" />
-                <a href="mailto:support@shopelite.com" className="hover:text-white transition-colors">support@shopelite.com</a>
+              <li className="flex items-center gap-2.5 text-sm text-[var(--text-muted)]">
+                <Mail className="w-4 h-4 text-primary-500 flex-shrink-0" />
+                <a href="mailto:support@shopelite.com" className="hover:text-[var(--text-primary)] transition-colors">support@shopelite.com</a>
               </li>
             </ul>
           </div>
         </div>
 
-        <div className="border-t border-dark-800 mt-10 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p className="text-sm text-dark-500">© {year} ShopElite. All rights reserved.</p>
-          <div className="flex items-center gap-4 text-xs text-dark-500">
-            <a href="#" className="hover:text-dark-300 transition-colors">Privacy Policy</a>
-            <a href="#" className="hover:text-dark-300 transition-colors">Terms of Service</a>
-            <a href="#" className="hover:text-dark-300 transition-colors">Refund Policy</a>
+        <div className="border-t border-[var(--border-color)] mt-10 pt-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <p className="text-sm text-[var(--text-subtle)]">© {year} ShopElite. All rights reserved.</p>
+          <div className="flex items-center gap-4 text-xs text-[var(--text-subtle)]">
+            <a href="#" className="hover:text-[var(--text-muted)] transition-colors">Privacy Policy</a>
+            <a href="#" className="hover:text-[var(--text-muted)] transition-colors">Terms of Service</a>
+            <a href="#" className="hover:text-[var(--text-muted)] transition-colors">Refund Policy</a>
           </div>
         </div>
       </div>

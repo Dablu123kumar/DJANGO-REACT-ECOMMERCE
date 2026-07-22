@@ -13,7 +13,7 @@ export default function SellerRegister() {
   const navigate = useNavigate();
   const [loading, setLoading] = useState(false);
   const [showPwd, setShowPwd] = useState(false);
-  const [step, setStep] = useState(1); // 1 = account info, 2 = store info
+  const [step, setStep] = useState(1);
   const [form, setForm] = useState({
     full_name: '', email: '', phone: '', password: '', password_confirm: '',
     store_name: '', description: '', store_phone: '', address: '', website: '', gstin: '',
@@ -54,11 +54,10 @@ export default function SellerRegister() {
   };
 
   return (
-    <div className="min-h-screen bg-dark-900 flex items-center justify-center px-4 py-16">
-      {/* Background glow */}
+    <div className="min-h-screen bg-[var(--bg-page)] flex items-center justify-center px-4 py-16 transition-colors duration-300">
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary-600/10 rounded-full blur-3xl" />
-        <div className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-cyan-600/10 rounded-full blur-3xl" />
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-primary-500/10 rounded-full blur-3xl" />
+        <div className="absolute bottom-1/4 right-1/4 w-64 h-64 bg-cyan-500/10 rounded-full blur-3xl" />
       </div>
 
       <div className="w-full max-w-xl relative">
@@ -67,8 +66,8 @@ export default function SellerRegister() {
           <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-primary-600 to-cyan-500 mb-4 shadow-glow">
             <Store className="w-8 h-8 text-white" />
           </div>
-          <h1 className="text-3xl font-heading font-bold text-white">Become a Seller</h1>
-          <p className="text-dark-400 mt-2">Register your store and start selling on ShopElite</p>
+          <h1 className="text-3xl font-heading font-bold text-[var(--text-primary)]">Become a Seller</h1>
+          <p className="text-[var(--text-muted)] mt-2">Register your store and start selling on ShopElite</p>
         </div>
 
         {/* Step indicator */}
@@ -76,16 +75,16 @@ export default function SellerRegister() {
           {[1, 2].map((s) => (
             <div key={s} className="flex-1 flex items-center gap-2">
               <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all ${
-                step > s ? 'bg-green-500 text-white' :
+                step > s ? 'bg-emerald-500 text-white' :
                 step === s ? 'bg-primary-600 text-white shadow-glow' :
-                'bg-dark-700 text-dark-400'
+                'bg-[var(--bg-surface-hover)] text-[var(--text-subtle)] border border-[var(--border-color)]'
               }`}>
                 {step > s ? <CheckCircle className="w-4 h-4" /> : s}
               </div>
-              <span className={`text-sm font-medium ${step >= s ? 'text-white' : 'text-dark-500'}`}>
+              <span className={`text-sm font-medium ${step >= s ? 'text-[var(--text-primary)]' : 'text-[var(--text-subtle)]'}`}>
                 {s === 1 ? 'Account Info' : 'Store Details'}
               </span>
-              {s < 2 && <div className={`flex-1 h-px ${step > s ? 'bg-primary-600' : 'bg-dark-700'}`} />}
+              {s < 2 && <div className={`flex-1 h-px ${step > s ? 'bg-primary-600' : 'bg-[var(--border-color)]'}`} />}
             </div>
           ))}
         </div>
@@ -94,12 +93,12 @@ export default function SellerRegister() {
           {/* Step 1: Account Info */}
           {step === 1 && (
             <form onSubmit={nextStep} className="space-y-4">
-              <h2 className="text-lg font-semibold text-white mb-4">Your Account</h2>
+              <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4">Your Account</h2>
 
               <div>
                 <label className="label">Full Name *</label>
                 <div className="relative">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-dark-500" />
+                  <User className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-subtle)]" />
                   <input className="input pl-10" placeholder="John Doe" required
                     value={form.full_name} onChange={e => set('full_name', e.target.value)} />
                 </div>
@@ -108,7 +107,7 @@ export default function SellerRegister() {
               <div>
                 <label className="label">Email Address *</label>
                 <div className="relative">
-                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-dark-500" />
+                  <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-subtle)]" />
                   <input className="input pl-10" type="email" placeholder="you@example.com" required
                     value={form.email} onChange={e => set('email', e.target.value)} />
                 </div>
@@ -117,7 +116,7 @@ export default function SellerRegister() {
               <div>
                 <label className="label">Phone Number</label>
                 <div className="relative">
-                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-dark-500" />
+                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-subtle)]" />
                   <input className="input pl-10" placeholder="+91 98765 43210"
                     value={form.phone} onChange={e => set('phone', e.target.value)} />
                 </div>
@@ -126,12 +125,12 @@ export default function SellerRegister() {
               <div>
                 <label className="label">Password *</label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-dark-500" />
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-subtle)]" />
                   <input className="input pl-10 pr-10" type={showPwd ? 'text' : 'password'}
                     placeholder="Min 8 characters" required minLength={8}
                     value={form.password} onChange={e => set('password', e.target.value)} />
                   <button type="button" onClick={() => setShowPwd(!showPwd)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-dark-500 hover:text-white">
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-subtle)] hover:text-[var(--text-primary)]">
                     {showPwd ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                   </button>
                 </div>
@@ -140,7 +139,7 @@ export default function SellerRegister() {
               <div>
                 <label className="label">Confirm Password *</label>
                 <div className="relative">
-                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-dark-500" />
+                  <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-subtle)]" />
                   <input className="input pl-10" type="password" placeholder="Repeat password" required
                     value={form.password_confirm} onChange={e => set('password_confirm', e.target.value)} />
                 </div>
@@ -155,12 +154,12 @@ export default function SellerRegister() {
           {/* Step 2: Store Details */}
           {step === 2 && (
             <form onSubmit={handleSubmit} className="space-y-4">
-              <h2 className="text-lg font-semibold text-white mb-4">Your Store</h2>
+              <h2 className="text-lg font-semibold text-[var(--text-primary)] mb-4">Your Store</h2>
 
               <div>
                 <label className="label">Store Name *</label>
                 <div className="relative">
-                  <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-dark-500" />
+                  <Building2 className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-subtle)]" />
                   <input className="input pl-10" placeholder="My Awesome Store" required
                     value={form.store_name} onChange={e => set('store_name', e.target.value)} />
                 </div>
@@ -177,7 +176,7 @@ export default function SellerRegister() {
                 <div>
                   <label className="label">Store Phone</label>
                   <div className="relative">
-                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-dark-500" />
+                    <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-subtle)]" />
                     <input className="input pl-10" placeholder="+91 99999 00000"
                       value={form.store_phone} onChange={e => set('store_phone', e.target.value)} />
                   </div>
@@ -185,7 +184,7 @@ export default function SellerRegister() {
                 <div>
                   <label className="label">Website</label>
                   <div className="relative">
-                    <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-dark-500" />
+                    <Globe className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-subtle)]" />
                     <input className="input pl-10" placeholder="https://mystore.com"
                       value={form.website} onChange={e => set('website', e.target.value)} />
                   </div>
@@ -195,23 +194,23 @@ export default function SellerRegister() {
               <div>
                 <label className="label">Business Address</label>
                 <div className="relative">
-                  <MapPin className="absolute left-3 top-3 w-4 h-4 text-dark-500" />
+                  <MapPin className="absolute left-3 top-3 w-4 h-4 text-[var(--text-subtle)]" />
                   <textarea className="input pl-10" rows={2} placeholder="123 Street, City, State, PIN"
                     value={form.address} onChange={e => set('address', e.target.value)} />
                 </div>
               </div>
 
               <div>
-                <label className="label">GSTIN <span className="text-dark-500">(optional)</span></label>
+                <label className="label">GSTIN <span className="text-[var(--text-subtle)]">(optional)</span></label>
                 <div className="relative">
-                  <FileText className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-dark-500" />
+                  <FileText className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-subtle)]" />
                   <input className="input pl-10" placeholder="22AAAAA0000A1Z5" maxLength={20}
                     value={form.gstin} onChange={e => set('gstin', e.target.value.toUpperCase())} />
                 </div>
               </div>
 
               {/* Terms */}
-              <div className="p-3 rounded-xl bg-dark-700/50 border border-dark-600 text-xs text-dark-400">
+              <div className="p-3 rounded-xl bg-[var(--bg-surface-hover)] border border-[var(--border-color)] text-xs text-[var(--text-muted)]">
                 By submitting, you agree to ShopElite's Seller Terms of Service. Your store will be reviewed
                 and activated within 24–48 hours.
               </div>
@@ -228,11 +227,11 @@ export default function SellerRegister() {
           )}
         </div>
 
-        <p className="text-center text-dark-500 mt-6 text-sm">
+        <p className="text-center text-[var(--text-muted)] mt-6 text-sm">
           Already a seller?{' '}
-          <Link to="/login" className="text-primary-400 hover:text-primary-300 font-medium">Sign in</Link>
+          <Link to="/login" className="text-primary-500 hover:text-primary-600 font-medium">Sign in</Link>
           {' '} · {' '}
-          <Link to="/" className="text-dark-400 hover:text-white">Back to shop</Link>
+          <Link to="/" className="text-[var(--text-subtle)] hover:text-[var(--text-primary)]">Back to shop</Link>
         </p>
       </div>
     </div>

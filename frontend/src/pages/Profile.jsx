@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link } from 'react-router-dom';
-import { User, Package, Lock, Camera, Loader2, Save, Store, ChevronRight } from 'lucide-react';
+import { User, Package, Lock, Loader2, Save, Store, ChevronRight } from 'lucide-react';
 import { fetchProfile, updateProfile } from '../redux/slices/authSlice';
 import { fetchOrders } from '../redux/slices/orderSlice';
 import api from '../services/api';
@@ -11,7 +11,7 @@ const TABS = ['Profile', 'Security', 'Orders'];
 
 export default function Profile() {
   const dispatch = useDispatch();
-  const { user, loading } = useSelector((s) => s.auth);
+  const { user } = useSelector((s) => s.auth);
   const { list: orders } = useSelector((s) => s.orders);
   const [tab, setTab] = useState('Profile');
   const [profileForm, setProfileForm] = useState({ full_name: '', phone: '' });
@@ -51,8 +51,8 @@ export default function Profile() {
   };
 
   return (
-    <div className="min-h-screen pt-20">
-      <div className="section max-w-4xl mx-auto">
+    <div className="min-h-screen bg-[var(--bg-page)] transition-colors duration-300">
+      <div className="section max-w-4xl mx-auto py-8">
         {/* Header */}
         <div className="card p-6 mb-6 flex items-center gap-5">
           <div className="relative">
@@ -61,27 +61,31 @@ export default function Profile() {
             </div>
           </div>
           <div>
-            <h1 className="text-xl font-heading font-bold text-white">{user?.full_name}</h1>
-            <p className="text-dark-400 text-sm">{user?.email}</p>
+            <h1 className="text-xl font-heading font-bold text-[var(--text-primary)]">{user?.full_name}</h1>
+            <p className="text-[var(--text-muted)] text-sm">{user?.email}</p>
             <span className={user?.role === 'admin' ? 'badge badge-primary mt-1' : 'badge badge-gray mt-1'}>{user?.role}</span>
           </div>
           <div className="ml-auto hidden sm:flex gap-6 text-center">
             <div>
-              <p className="text-2xl font-bold text-white">{orders.length}</p>
-              <p className="text-xs text-dark-400">Orders</p>
+              <p className="text-2xl font-bold text-[var(--text-primary)]">{orders.length}</p>
+              <p className="text-xs text-[var(--text-muted)]">Orders</p>
             </div>
             <div>
-              <p className="text-2xl font-bold text-white">{orders.filter(o => o.order_status === 'delivered').length}</p>
-              <p className="text-xs text-dark-400">Delivered</p>
+              <p className="text-2xl font-bold text-[var(--text-primary)]">{orders.filter(o => o.order_status === 'delivered').length}</p>
+              <p className="text-xs text-[var(--text-muted)]">Delivered</p>
             </div>
           </div>
         </div>
 
         {/* Tabs */}
-        <div className="flex gap-1 bg-dark-800 rounded-xl p-1 mb-6">
+        <div className="flex gap-1 bg-[var(--bg-surface-hover)] border border-[var(--border-color)] rounded-xl p-1 mb-6">
           {TABS.map(t => (
             <button key={t} onClick={() => setTab(t)}
-              className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${tab === t ? 'bg-primary-600 text-white shadow-glow' : 'text-dark-400 hover:text-white'}`}>
+              className={`flex-1 py-2 text-sm font-medium rounded-lg transition-all ${
+                tab === t 
+                  ? 'bg-primary-600 text-white font-semibold shadow-sm' 
+                  : 'text-[var(--text-muted)] hover:text-[var(--text-primary)]'
+              }`}>
               {t}
             </button>
           ))}
@@ -90,7 +94,9 @@ export default function Profile() {
         {/* Profile Tab */}
         {tab === 'Profile' && (
           <div className="card p-6 animate-fade-in">
-            <h2 className="font-heading font-semibold text-white mb-5 flex items-center gap-2"><User className="w-5 h-5 text-primary-400" /> Personal Information</h2>
+            <h2 className="font-heading font-semibold text-[var(--text-primary)] mb-5 flex items-center gap-2">
+              <User className="w-5 h-5 text-primary-500" /> Personal Information
+            </h2>
             <form onSubmit={handleProfileSave} className="space-y-4">
               <div>
                 <label className="label">Full Name</label>
@@ -110,16 +116,15 @@ export default function Profile() {
             </form>
 
             {user?.role !== 'seller' && user?.role !== 'admin' && (
-              <div className="mt-8 pt-8 border-t border-dark-700">
-                <div className="p-6 rounded-2xl bg-gradient-to-br from-primary-900/20 to-cyan-900/20 border border-primary-800/50 relative overflow-hidden group">
-                  <div className="absolute top-0 right-0 -mr-8 -mt-8 w-32 h-32 bg-primary-500/10 rounded-full blur-3xl group-hover:bg-primary-500/20 transition-colors duration-500 pointer-events-none" />
-                  <div className="flex flex-col md:flex-row items-start md:items-center gap-5 relative">
-                    <div className="w-14 h-14 rounded-xl bg-dark-800 border border-dark-700 flex items-center justify-center shadow-lg shrink-0">
-                      <Store className="w-7 h-7 text-primary-400" />
+              <div className="mt-8 pt-8 border-t border-[var(--border-color)]">
+                <div className="p-6 rounded-2xl bg-gradient-to-br from-primary-500/10 to-cyan-500/10 border border-primary-500/30 relative overflow-hidden group">
+                  <div className="flex flex-col md:flex-row items-start md:items-center gap-5 relative z-10">
+                    <div className="w-14 h-14 rounded-xl bg-[var(--bg-surface)] border border-[var(--border-color)] flex items-center justify-center shadow-lg shrink-0">
+                      <Store className="w-7 h-7 text-primary-500" />
                     </div>
                     <div className="flex-1">
-                      <h3 className="text-lg font-heading font-bold text-white">Start Selling on ShopElite</h3>
-                      <p className="text-dark-400 text-sm mt-1">Convert your existing account into a seller dashboard, list your products, and earn money globally.</p>
+                      <h3 className="text-lg font-heading font-bold text-[var(--text-primary)]">Start Selling on ShopElite</h3>
+                      <p className="text-[var(--text-muted)] text-sm mt-1">Convert your existing account into a seller dashboard, list your products, and earn money globally.</p>
                     </div>
                     <Link to="/seller/apply" className="btn-primary w-full md:w-auto shrink-0 group/btn">
                       Apply to Sell <ChevronRight className="w-4 h-4 group-hover/btn:translate-x-1 transition-transform" />
@@ -134,7 +139,9 @@ export default function Profile() {
         {/* Security Tab */}
         {tab === 'Security' && (
           <div className="card p-6 animate-fade-in">
-            <h2 className="font-heading font-semibold text-white mb-5 flex items-center gap-2"><Lock className="w-5 h-5 text-primary-400" /> Change Password</h2>
+            <h2 className="font-heading font-semibold text-[var(--text-primary)] mb-5 flex items-center gap-2">
+              <Lock className="w-5 h-5 text-primary-500" /> Change Password
+            </h2>
             <form onSubmit={handlePasswordChange} className="space-y-4 max-w-md">
               {[['old_password','Current Password'],['new_password','New Password'],['new_password_confirm','Confirm New Password']].map(([key, label]) => (
                 <div key={key}>
@@ -154,17 +161,17 @@ export default function Profile() {
           <div className="space-y-4 animate-fade-in">
             {orders.length === 0 ? (
               <div className="card p-8 text-center">
-                <Package className="w-12 h-12 text-dark-600 mx-auto mb-3" />
-                <p className="text-dark-400">No orders yet</p>
+                <Package className="w-12 h-12 text-[var(--text-subtle)] mx-auto mb-3" />
+                <p className="text-[var(--text-muted)]">No orders yet</p>
               </div>
             ) : orders.map(order => (
-              <div key={order.id} className="card p-4 flex items-center justify-between hover:border-dark-600 transition-colors">
+              <div key={order.id} className="card p-4 flex items-center justify-between hover:border-primary-500/40 transition-colors">
                 <div>
-                  <span className="font-mono font-bold text-primary-400 text-sm">#{order.order_number}</span>
-                  <p className="text-xs text-dark-400 mt-0.5">{new Date(order.created_at).toLocaleDateString('en-IN')}</p>
+                  <span className="font-mono font-bold text-primary-500 text-sm">#{order.order_number}</span>
+                  <p className="text-xs text-[var(--text-muted)] mt-0.5">{new Date(order.created_at).toLocaleDateString('en-IN')}</p>
                 </div>
                 <span className={`status-${order.order_status}`}>{order.order_status}</span>
-                <span className="font-bold text-white">₹{parseFloat(order.total_price).toLocaleString('en-IN')}</span>
+                <span className="font-bold text-[var(--text-primary)]">₹{parseFloat(order.total_price).toLocaleString('en-IN')}</span>
                 <a href={`/orders/${order.id}`} className="btn-outline btn-sm">View</a>
               </div>
             ))}

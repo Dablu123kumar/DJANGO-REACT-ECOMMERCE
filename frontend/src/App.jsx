@@ -6,6 +6,7 @@ import { store } from './redux/store';
 import { useSelector, useDispatch } from 'react-redux';
 import { useEffect, useState } from 'react';
 import { fetchProfile } from './redux/slices/authSlice';
+import { ThemeProvider, useTheme } from './context/ThemeContext';
 
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
@@ -46,7 +47,6 @@ function SellerRoute({ children }) {
   const { user } = useSelector((s) => s.auth);
   if (!user) return <Navigate to="/login" replace />;
   if (user.role !== 'seller') return <Navigate to="/" replace />;
-  // store status is checked server-side; show pending page if not approved
   return children;
 }
 
@@ -54,7 +54,7 @@ function AppLayout({ children }) {
   return (
     <>
       <Navbar />
-      <main className="min-h-screen">{children}</main>
+      <main className="min-h-screen pt-16">{children}</main>
       <Footer />
     </>
   );
@@ -75,13 +75,36 @@ function AppInit({ children }) {
 
   if (!init || (loading && !user && isAuthenticated)) {
     return (
-      <div className="min-h-screen bg-dark-900 flex items-center justify-center">
+      <div className="min-h-screen bg-[var(--bg-page)] flex items-center justify-center">
         <div className="w-8 h-8 border-4 border-primary-500 border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
 
   return children;
+}
+
+function ThemedToaster() {
+  const { theme } = useTheme();
+  const isDark = theme === 'dark';
+  return (
+    <Toaster
+      position="top-right"
+      toastOptions={{
+        duration: 3000,
+        style: {
+          background: isDark ? '#1e293b' : '#ffffff',
+          color: isDark ? '#f1f5f9' : '#0f172a',
+          border: isDark ? '1px solid #334155' : '1px solid #e2e8f0',
+          boxShadow: isDark ? '0 10px 25px -5px rgba(0,0,0,0.5)' : '0 10px 25px -5px rgba(0,0,0,0.1)',
+          borderRadius: '12px',
+          fontSize: '14px',
+        },
+        success: { iconTheme: { primary: '#10b981', secondary: '#fff' } },
+        error: { iconTheme: { primary: '#ef4444', secondary: '#fff' } },
+      }}
+    />
+  );
 }
 
 function AppRoutes() {
@@ -120,7 +143,7 @@ function AppRoutes() {
         <AppLayout>
           <div className="min-h-screen flex flex-col items-center justify-center text-center px-4">
             <h1 className="text-8xl font-heading font-bold text-gradient mb-4">404</h1>
-            <p className="text-xl text-dark-300 mb-8">Page not found</p>
+            <p className="text-xl text-[var(--text-muted)] mb-8">Page not found</p>
             <a href="/" className="btn-primary btn-lg">Go Home</a>
           </div>
         </AppLayout>
@@ -132,28 +155,16 @@ function AppRoutes() {
 export default function App() {
   return (
     <Provider store={store}>
-      <HelmetProvider>
-        <Router>
-          <AppInit>
-            <AppRoutes />
-          </AppInit>
-          <Toaster
-            position="top-right"
-            toastOptions={{
-              duration: 3000,
-              style: {
-                background: '#1e293b',
-                color: '#f1f5f9',
-                border: '1px solid #334155',
-                borderRadius: '12px',
-                fontSize: '14px',
-              },
-              success: { iconTheme: { primary: '#10b981', secondary: '#fff' } },
-              error: { iconTheme: { primary: '#ef4444', secondary: '#fff' } },
-            }}
-          />
-        </Router>
-      </HelmetProvider>
+      <ThemeProvider>
+        <HelmetProvider>
+          <Router>
+            <AppInit>
+              <AppRoutes />
+            </AppInit>
+            <ThemedToaster />
+          </Router>
+        </HelmetProvider>
+      </ThemeProvider>
     </Provider>
   );
 }

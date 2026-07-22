@@ -1,10 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { Heart, ShoppingCart, Trash2 } from 'lucide-react';
 import api from '../services/api';
 import { addToCart } from '../redux/slices/cartSlice';
-import { useDispatch } from 'react-redux';
 import toast from 'react-hot-toast';
 import ProductCard from '../components/ProductCard';
 
@@ -49,7 +48,7 @@ export default function Wishlist() {
   };
 
   if (loading) return (
-    <div className="min-h-screen pt-24 section">
+    <div className="min-h-screen pt-24 section bg-[var(--bg-page)]">
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
         {Array.from({ length: 4 }).map((_, i) => <div key={i} className="skeleton h-72 rounded-xl" />)}
       </div>
@@ -57,18 +56,18 @@ export default function Wishlist() {
   );
 
   return (
-    <div className="min-h-screen pt-20">
-      <div className="section">
+    <div className="min-h-screen bg-[var(--bg-page)] transition-colors duration-300">
+      <div className="section py-8">
         <h1 className="section-title flex items-center gap-2 mb-8">
-          <Heart className="w-7 h-7 text-red-400" fill="currentColor" /> My Wishlist
+          <Heart className="w-7 h-7 text-red-500" fill="currentColor" /> My Wishlist
           {wishlist.length > 0 && <span className="badge badge-primary">{wishlist.length}</span>}
         </h1>
 
         {wishlist.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-24 text-center">
-            <Heart className="w-20 h-20 text-dark-600 mb-4" />
-            <h2 className="text-xl font-semibold text-white mb-2">Your wishlist is empty</h2>
-            <p className="text-dark-400 mb-8">Save your favourite items here</p>
+          <div className="flex flex-col items-center justify-center py-24 text-center card p-8">
+            <Heart className="w-20 h-20 text-[var(--text-subtle)] mb-4" />
+            <h2 className="text-xl font-semibold text-[var(--text-primary)] mb-2">Your wishlist is empty</h2>
+            <p className="text-[var(--text-muted)] mb-8">Save your favourite items here</p>
             <Link to="/products" className="btn-primary btn-lg">Explore Products</Link>
           </div>
         ) : (

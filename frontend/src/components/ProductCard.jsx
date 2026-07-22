@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { Heart, ShoppingCart, Eye, Star } from 'lucide-react';
+import { Heart, ShoppingCart, Eye } from 'lucide-react';
 import { addToCart } from '../redux/slices/cartSlice';
 import api from '../services/api';
 import toast from 'react-hot-toast';
@@ -14,7 +14,6 @@ export default function ProductCard({ product }) {
   const navigate = useNavigate();
   const { user } = useSelector((s) => s.auth);
   const [wishlisted, setWishlisted] = useState(false);
-  const [addingToCart, setAddingToCart] = useState(false);
 
   const img = product.primary_image?.image;
   const imageUrl = img ? (img.startsWith('http') ? img : `${API_BASE}${img}`) : null;
@@ -48,7 +47,7 @@ export default function ProductCard({ product }) {
     <Link to={`/products/${product.slug}`} className="product-card block group">
 
       {/* Image */}
-      <div className="relative overflow-hidden bg-dark-700 aspect-product">
+      <div className="relative overflow-hidden bg-[var(--bg-surface-hover)] aspect-product">
         {imageUrl ? (
           <img
             src={imageUrl}
@@ -58,26 +57,26 @@ export default function ProductCard({ product }) {
           />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-            <ShoppingCart className="w-12 h-12 text-dark-500" />
+            <ShoppingCart className="w-12 h-12 text-[var(--text-subtle)]" />
           </div>
         )}
 
         {/* Discount badge */}
         {product.discount_percentage > 0 && (
-          <span className="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+          <span className="absolute top-2 left-2 bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full shadow-sm">
             -{product.discount_percentage}%
           </span>
         )}
 
         {/* Out of stock overlay */}
         {!product.in_stock && (
-          <div className="absolute inset-0 bg-dark-900/70 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-xs flex items-center justify-center">
             <span className="badge badge-danger text-sm">Out of Stock</span>
           </div>
         )}
 
         {/* Hover overlays */}
-        <div className="absolute inset-0 bg-dark-900/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-2">
+        <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center gap-2">
           <button
             onClick={handleWishlist}
             className={`w-9 h-9 rounded-full flex items-center justify-center backdrop-blur-sm transition-all duration-200 ${wishlisted ? 'bg-red-500 text-white' : 'bg-white/20 text-white hover:bg-red-500'}`}
@@ -100,32 +99,32 @@ export default function ProductCard({ product }) {
       {/* Info */}
       <div className="p-2 sm:p-4">
         {product.category_name && (
-          <p className="text-[8px] sm:text-xs text-primary-400 font-medium mb-0.5 sm:mb-1 uppercase tracking-wide">{product.category_name}</p>
+          <p className="text-[8px] sm:text-xs text-primary-500 font-medium mb-0.5 sm:mb-1 uppercase tracking-wide">{product.category_name}</p>
         )}
-        <h3 className="font-medium text-dark-100 line-clamp-2 text-xs sm:text-sm leading-snug mb-1 sm:mb-2 group-hover:text-white transition-colors">
+        <h3 className="font-medium text-[var(--text-primary)] line-clamp-2 text-xs sm:text-sm leading-snug mb-1 sm:mb-2 group-hover:text-primary-500 transition-colors">
           {product.name}
         </h3>
         <div className="flex items-center gap-1 mb-1 sm:mb-2">
           <StarRating rating={product.average_rating} />
           {product.review_count > 0 && (
-            <span className="text-[10px] sm:text-xs text-dark-400">({product.review_count})</span>
+            <span className="text-[10px] sm:text-xs text-[var(--text-muted)]">({product.review_count})</span>
           )}
         </div>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1">
           <div className="flex items-center gap-1.5 sm:gap-2">
-            <span className="font-bold text-white text-xs sm:text-base">
+            <span className="font-bold text-[var(--text-primary)] text-xs sm:text-base">
               ₹{parseFloat(product.effective_price).toLocaleString('en-IN')}
             </span>
             {product.discount_price && (
-              <span className="text-[10px] sm:text-xs text-dark-500 line-through">
+              <span className="text-[10px] sm:text-xs text-[var(--text-subtle)] line-through">
                 ₹{parseFloat(product.price).toLocaleString('en-IN')}
               </span>
             )}
           </div>
           {product.in_stock ? (
-            <span className="text-[10px] sm:text-xs text-green-400">In Stock</span>
+            <span className="text-[10px] sm:text-xs text-emerald-500 font-medium">In Stock</span>
           ) : (
-            <span className="text-[10px] sm:text-xs text-red-400">Out of Stock</span>
+            <span className="text-[10px] sm:text-xs text-red-500 font-medium">Out of Stock</span>
           )}
         </div>
       </div>

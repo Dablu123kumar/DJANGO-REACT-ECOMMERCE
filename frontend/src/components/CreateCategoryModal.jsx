@@ -16,7 +16,7 @@ export default function CreateCategoryModal({ isOpen, onClose, onSuccess, isSubc
     if (initialData) {
       setForm({
         name: initialData.name || '',
-        image: null, // Keep null, we only update image if a new one is selected
+        image: null,
         parent: initialData.parent || '',
       });
     } else {
@@ -77,14 +77,14 @@ export default function CreateCategoryModal({ isOpen, onClose, onSuccess, isSubc
       <div className="card p-0 w-full max-w-md relative animate-slide-up overflow-hidden">
         
         {/* Header */}
-        <div className="flex items-center justify-between p-4 border-b border-dark-700 bg-dark-800">
-          <h3 className="text-lg font-bold text-white flex items-center gap-2 font-heading">
-            {initialData ? <Edit2 className="w-5 h-5 text-primary-400" /> : <PlusCircle className="w-5 h-5 text-primary-400" />}
+        <div className="flex items-center justify-between p-4 border-b border-[var(--border-color)] bg-[var(--bg-surface-hover)]">
+          <h3 className="text-lg font-bold text-[var(--text-primary)] flex items-center gap-2 font-heading">
+            {initialData ? <Edit2 className="w-5 h-5 text-primary-500" /> : <PlusCircle className="w-5 h-5 text-primary-500" />}
             {initialData 
               ? (isSubcategory ? 'Edit Subcategory' : 'Edit Category')
               : (isSubcategory ? 'Create Subcategory' : 'Create Category')}
           </h3>
-          <button onClick={onClose} className="btn-ghost p-1.5 rounded-lg text-dark-400 hover:text-white">
+          <button onClick={onClose} className="btn-ghost p-1.5 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-primary)]">
             <X className="w-5 h-5" />
           </button>
         </div>
@@ -125,11 +125,11 @@ export default function CreateCategoryModal({ isOpen, onClose, onSuccess, isSubc
             <label className="label">{isSubcategory ? 'Subcategory Image' : 'Category Image'}</label>
             <div className="mt-1 flex items-center gap-4">
               {form.image ? (
-                <div className="w-16 h-16 rounded-lg overflow-hidden border border-dark-600">
+                <div className="w-16 h-16 rounded-lg overflow-hidden border border-[var(--border-color)]">
                   <img src={URL.createObjectURL(form.image)} alt="Preview" className="w-full h-full object-cover" />
                 </div>
               ) : initialData?.image ? (
-                <div className="w-16 h-16 rounded-lg overflow-hidden border border-dark-600 bg-dark-800 flex items-center justify-center p-1">
+                <div className="w-16 h-16 rounded-lg overflow-hidden border border-[var(--border-color)] bg-[var(--bg-surface-hover)] flex items-center justify-center p-1">
                   <img src={initialData.image.startsWith('http') ? initialData.image : `${import.meta.env.VITE_API_BASE_URL?.replace('/api', '') || 'http://localhost:8000'}${initialData.image}`} alt="Current" className="w-full h-full object-contain" />
                 </div>
               ) : null}
@@ -149,7 +149,7 @@ export default function CreateCategoryModal({ isOpen, onClose, onSuccess, isSubc
                 </label>
               </div>
             </div>
-            <p className="text-[10px] text-dark-400 mt-2">Upload a high-quality icon or photo for this {isSubcategory ? 'subcategory' : 'category'}.</p>
+            <p className="text-[10px] text-[var(--text-subtle)] mt-2">Upload a high-quality icon or photo for this {isSubcategory ? 'subcategory' : 'category'}.</p>
           </div>
 
           <div className="pt-4 flex gap-3">

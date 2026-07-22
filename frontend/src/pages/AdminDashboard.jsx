@@ -26,18 +26,16 @@ export default function AdminDashboard() {
   const [products, setProducts] = useState([]);
   const [orders, setOrders] = useState([]);
   const [users, setUsers] = useState([]);
-  const [categories, setCategories] = useState([]); // Add categories storage
+  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(true);
   const [rejectModal, setRejectModal] = useState(null); 
   const [rejectReason, setRejectReason] = useState('');
   const [viewProductModal, setViewProductModal] = useState(null);
-  const [isProductsOpen, setIsProductsOpen] = useState(false); // Toggle for sidebar group
-  const [isCatModalOpen, setIsCatModalOpen] = useState(false); // For quickly creating cats
-  const [catModalMode, setCatModalMode] = useState('category'); // 'category' or 'subcategory'
+  const [isProductsOpen, setIsProductsOpen] = useState(false);
+  const [isCatModalOpen, setIsCatModalOpen] = useState(false);
+  const [catModalMode, setCatModalMode] = useState('category');
   const [editCategoryData, setEditCategoryData] = useState(null);
 
-
-  // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
   const [totalProducts, setTotalProducts] = useState(0);
@@ -62,7 +60,7 @@ export default function AdminDashboard() {
       setProducts(res.data.results || res.data);
       setTotalProducts(res.data.count || res.data.length);
       setTotalPages(Math.ceil((res.data.count || res.data.length) / 12));
-    } catch (err) {
+    } catch {
       toast.error('Failed to update products page');
     }
     setProductsLoading(false);
@@ -83,10 +81,9 @@ export default function AdminDashboard() {
       setUsers(usrs.data.results || usrs.data);
       setCategories(cats.data.results || cats.data);
       
-      // Load products page 1 explicitly
       await fetchProducts(1);
       setCurrentPage(1);
-    } catch (err) {
+    } catch {
       toast.error('Failed to load admin dashboard metrics');
     }
     setLoading(false);
@@ -118,7 +115,7 @@ export default function AdminDashboard() {
     if (!confirm('Delete this category? This might affect products!')) return;
     try {
       await api.delete(`/categories/${slug}/`);
-      loadData(); // Refresh categories
+      loadData();
       toast.success('Category deleted');
     } catch { toast.error('Could not delete category'); }
   };
@@ -164,10 +161,10 @@ export default function AdminDashboard() {
   ];
 
   const STAT_CARDS = stats ? [
-    { label: 'Total Products', value: stats.products?.total_products || 0, icon: Package, color: 'text-primary-400', bg: 'bg-primary-900/30 border-primary-700/50', change: `${stats.products?.active_products} active` },
-    { label: 'Total Orders', value: stats.orders?.total_orders || 0, icon: ShoppingBag, color: 'text-cyan-400', bg: 'bg-cyan-900/30 border-cyan-700/50', change: `${stats.orders?.pending_orders || 0} pending` },
-    { label: 'Total Revenue', value: `₹${parseFloat(stats.orders?.total_revenue || 0).toLocaleString('en-IN')}`, icon: DollarSign, color: 'text-green-400', bg: 'bg-green-900/30 border-green-700/50', change: 'all time' },
-    { label: 'Total Users', value: users.length, icon: Users, color: 'text-amber-400', bg: 'bg-amber-900/30 border-amber-700/50', change: 'registered' },
+    { label: 'Total Products', value: stats.products?.total_products || 0, icon: Package, color: 'text-primary-500', change: `${stats.products?.active_products} active` },
+    { label: 'Total Orders', value: stats.orders?.total_orders || 0, icon: ShoppingBag, color: 'text-cyan-500', change: `${stats.orders?.pending_orders || 0} pending` },
+    { label: 'Total Revenue', value: `₹${parseFloat(stats.orders?.total_revenue || 0).toLocaleString('en-IN')}`, icon: DollarSign, color: 'text-emerald-500', change: 'all time' },
+    { label: 'Total Users', value: users.length, icon: Users, color: 'text-amber-500', change: 'registered' },
   ] : [];
 
   const TABS = [
@@ -179,28 +176,29 @@ export default function AdminDashboard() {
   ];
 
   if (loading) return (
-    <div className="min-h-screen pt-24 flex items-center justify-center">
-      <Loader2 className="w-8 h-8 text-primary-400 animate-spin" />
+    <div className="min-h-screen pt-24 flex items-center justify-center bg-[var(--bg-page)]">
+      <Loader2 className="w-8 h-8 text-primary-500 animate-spin" />
     </div>
   );
 
   return (
-    <div className="h-screen bg-dark-900 flex overflow-hidden pb-16 lg:pb-0">
-      <aside className="hidden lg:flex flex-col w-56 bg-dark-800 border-r border-dark-700 h-full pt-6 px-3 flex-shrink-0">
+    <div className="h-screen bg-[var(--bg-page)] flex overflow-hidden pb-16 lg:pb-0 transition-colors duration-300">
+      <aside className="hidden lg:flex flex-col w-56 bg-[var(--bg-surface)] border-r border-[var(--border-color)] h-full pt-6 px-3 flex-shrink-0">
         <div className="mb-8 px-3 flex items-center justify-between">
-          <p className="text-xs text-dark-500 font-semibold uppercase tracking-wider">Admin Panel</p>
-          <Link to="/" className="text-xs text-primary-400 hover:text-primary-300">Exit</Link>
+          <p className="text-xs text-[var(--text-subtle)] font-semibold uppercase tracking-wider">Admin Panel</p>
+          <Link to="/" className="text-xs text-primary-500 hover:text-primary-600 font-medium">Exit</Link>
         </div>
+        
         {/* Overview */}
         <button onClick={() => setTab('overview')}
-          className={`flex items-center gap-3 px-3 py-2.5 rounded-xl mb-1 text-sm font-medium transition-all ${tab === 'overview' ? 'bg-primary-600 text-white shadow-glow' : 'text-dark-400 hover:text-white hover:bg-dark-700'}`}>
+          className={`flex items-center gap-3 px-3 py-2.5 rounded-xl mb-1 text-sm font-medium transition-all ${tab === 'overview' ? 'bg-primary-600 text-white shadow-glow font-semibold' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-hover)]'}`}>
           <LayoutDashboard className="w-4 h-4" /> Overview
         </button>
 
         {/* Products Dropdown Group */}
         <div className="mb-1">
           <button onClick={() => setIsProductsOpen(!isProductsOpen)}
-            className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${(tab === 'products' || tab === 'categories' || tab === 'subcategories') ? 'text-white' : 'text-dark-400 hover:text-white hover:bg-dark-700'}`}>
+            className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${(tab === 'products' || tab === 'categories' || tab === 'subcategories') ? 'text-[var(--text-primary)] font-semibold' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-hover)]'}`}>
             <div className="flex items-center gap-3">
               <Package className="w-4 h-4" /> Products
             </div>
@@ -208,17 +206,17 @@ export default function AdminDashboard() {
           </button>
           
           {isProductsOpen && (
-            <div className="ml-5 pl-3 border-l border-dark-700 mt-1 space-y-1 animate-slide-down">
+            <div className="ml-5 pl-3 border-l border-[var(--border-color)] mt-1 space-y-1 animate-slide-down">
               <button onClick={() => setTab('products')} 
-                className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs font-medium transition-all ${tab === 'products' ? 'text-primary-400 bg-primary-900/20' : 'text-dark-400 hover:text-white hover:bg-dark-800'}`}>
+                className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs font-medium transition-all ${tab === 'products' ? 'text-primary-500 font-bold bg-primary-500/10' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-hover)]'}`}>
                 <List className="w-3 h-3" /> Product List
               </button>
               <button onClick={() => setTab('categories')} 
-                className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs font-medium transition-all ${tab === 'categories' ? 'text-primary-400 bg-primary-900/20' : 'text-dark-400 hover:text-white hover:bg-dark-800'}`}>
+                className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs font-medium transition-all ${tab === 'categories' ? 'text-primary-500 font-bold bg-primary-500/10' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-hover)]'}`}>
                 <Package className="w-3 h-3" /> Category List
               </button>
               <button onClick={() => setTab('subcategories')} 
-                className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs font-medium transition-all ${tab === 'subcategories' ? 'text-primary-400 bg-primary-900/20' : 'text-dark-400 hover:text-white hover:bg-dark-800'}`}>
+                className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs font-medium transition-all ${tab === 'subcategories' ? 'text-primary-500 font-bold bg-primary-500/10' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-hover)]'}`}>
                 <Layers className="w-3 h-3" /> Subcategory List
               </button>
             </div>
@@ -232,12 +230,12 @@ export default function AdminDashboard() {
           { id: 'sellers',   label: 'Sellers',   icon: Store },
         ].map(({ id, label, icon: Icon }) => (
           <button key={id} onClick={() => setTab(id)}
-            className={`flex items-center gap-3 px-3 py-2.5 rounded-xl mb-1 text-sm font-medium transition-all ${tab === id ? 'bg-primary-600 text-white shadow-glow' : 'text-dark-400 hover:text-white hover:bg-dark-700'}`}>
+            className={`flex items-center gap-3 px-3 py-2.5 rounded-xl mb-1 text-sm font-medium transition-all ${tab === id ? 'bg-primary-600 text-white shadow-glow font-semibold' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-hover)]'}`}>
             <Icon className="w-4 h-4" /> {label}
           </button>
         ))}
         <div className="mt-auto mb-6 px-3">
-          <button onClick={loadData} className="flex items-center gap-2 text-xs text-dark-500 hover:text-dark-300">
+          <button onClick={loadData} className="flex items-center gap-2 text-xs text-[var(--text-subtle)] hover:text-[var(--text-primary)]">
             <RefreshCw className="w-3 h-3" /> Refresh Data
           </button>
         </div>
@@ -247,55 +245,55 @@ export default function AdminDashboard() {
         <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto pb-24 lg:pb-8">
           {tab === 'overview' && (
             <div className="space-y-6 animate-fade-in">
-              <h1 className="text-2xl font-heading font-bold text-white">Dashboard Overview</h1>
+              <h1 className="text-2xl font-heading font-bold text-[var(--text-primary)]">Dashboard Overview</h1>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                {STAT_CARDS.map(({ label, value, icon: Icon, color, bg, change }) => (
-                  <div key={label} className={`card border p-5 ${bg}`}>
+                {STAT_CARDS.map(({ label, value, icon: Icon, color, change }) => (
+                  <div key={label} className="card p-5">
                     <div className="flex items-center justify-between mb-3">
-                      <p className="text-sm text-dark-400">{label}</p>
-                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${bg}`}>
+                      <p className="text-sm text-[var(--text-muted)]">{label}</p>
+                      <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-[var(--bg-surface-hover)] border border-[var(--border-color)]">
                         <Icon className={`w-5 h-5 ${color}`} />
                       </div>
                     </div>
-                    <p className="text-2xl font-bold text-white">{value}</p>
-                    <p className="text-xs text-dark-500 mt-1">{change}</p>
+                    <p className="text-2xl font-bold text-[var(--text-primary)]">{value}</p>
+                    <p className="text-xs text-[var(--text-subtle)] mt-1">{change}</p>
                   </div>
                 ))}
               </div>
               {stats?.products?.out_of_stock > 0 && (
-                <div className="card p-4 border-amber-700/50 bg-amber-900/10 flex items-center gap-3">
-                  <AlertTriangle className="w-5 h-5 text-amber-400" />
-                  <p className="text-sm text-amber-300">{stats.products.out_of_stock} products are out of stock</p>
+                <div className="card p-4 border-amber-500/40 bg-amber-500/10 flex items-center gap-3">
+                  <AlertTriangle className="w-5 h-5 text-amber-500" />
+                  <p className="text-sm text-amber-600 dark:text-amber-300 font-medium">{stats.products.out_of_stock} products are out of stock</p>
                 </div>
               )}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <div className="card p-5">
-                  <h3 className="font-semibold text-white mb-4">Orders (Last 5 Months)</h3>
+                  <h3 className="font-semibold text-[var(--text-primary)] mb-4">Orders (Last 5 Months)</h3>
                   <ResponsiveContainer width="100%" height={200}>
                     <BarChart data={CHART_DATA}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-                      <XAxis dataKey="month" stroke="#64748b" fontSize={12} />
-                      <YAxis stroke="#64748b" fontSize={12} />
-                      <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '8px', color: '#f1f5f9' }} />
+                      <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
+                      <XAxis dataKey="month" stroke="var(--text-subtle)" fontSize={12} />
+                      <YAxis stroke="var(--text-subtle)" fontSize={12} />
+                      <Tooltip contentStyle={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border-color)', borderRadius: '8px', color: 'var(--text-primary)' }} />
                       <Bar dataKey="orders" fill="#3b82f6" radius={[4,4,0,0]} />
                     </BarChart>
                   </ResponsiveContainer>
                 </div>
                 <div className="card p-5">
-                  <h3 className="font-semibold text-white mb-4">Revenue (Last 5 Months)</h3>
+                  <h3 className="font-semibold text-[var(--text-primary)] mb-4">Revenue (Last 5 Months)</h3>
                   <ResponsiveContainer width="100%" height={200}>
                     <LineChart data={CHART_DATA}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-                      <XAxis dataKey="month" stroke="#64748b" fontSize={12} />
-                      <YAxis stroke="#64748b" fontSize={12} />
-                      <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '8px', color: '#f1f5f9' }} />
+                      <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
+                      <XAxis dataKey="month" stroke="var(--text-subtle)" fontSize={12} />
+                      <YAxis stroke="var(--text-subtle)" fontSize={12} />
+                      <Tooltip contentStyle={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border-color)', borderRadius: '8px', color: 'var(--text-primary)' }} />
                       <Line type="monotone" dataKey="revenue" stroke="#06b6d4" strokeWidth={2} dot={{ fill: '#06b6d4' }} />
                     </LineChart>
                   </ResponsiveContainer>
                 </div>
               </div>
               <div className="card p-5">
-                <h3 className="font-semibold text-white mb-4">Recent Orders</h3>
+                <h3 className="font-semibold text-[var(--text-primary)] mb-4">Recent Orders</h3>
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead><tr className="table-header">
@@ -306,12 +304,12 @@ export default function AdminDashboard() {
                     <tbody>
                       {orders.slice(0, 8).map(o => (
                         <tr key={o.id} className="table-row">
-                          <td className="px-3 py-2.5 font-mono text-primary-400">#{o.order_number}</td>
-                          <td className="px-3 py-2.5 text-dark-300">{o.user_email}</td>
-                          <td className="px-3 py-2.5 font-semibold text-white">₹{parseFloat(o.total_price).toLocaleString('en-IN')}</td>
+                          <td className="px-3 py-2.5 font-mono text-primary-500 font-semibold">#{o.order_number}</td>
+                          <td className="px-3 py-2.5 text-[var(--text-muted)]">{o.user_email}</td>
+                          <td className="px-3 py-2.5 font-semibold text-[var(--text-primary)]">₹{parseFloat(o.total_price).toLocaleString('en-IN')}</td>
                           <td className="px-3 py-2.5"><span className={`status-${o.order_status}`}>{o.order_status}</span></td>
                           <td className="px-3 py-2.5"><span className={`status-${o.payment_status}`}>{o.payment_status}</span></td>
-                          <td className="px-3 py-2.5 text-dark-400">{new Date(o.created_at).toLocaleDateString('en-IN')}</td>
+                          <td className="px-3 py-2.5 text-[var(--text-subtle)]">{new Date(o.created_at).toLocaleDateString('en-IN')}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -325,15 +323,15 @@ export default function AdminDashboard() {
             <div className="space-y-5 animate-fade-in">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <h2 className="text-xl font-heading font-bold text-white">Products</h2>
-                  <span className="bg-dark-800 text-dark-400 text-xs px-2 py-0.5 rounded-full border border-dark-700">Total: {totalProducts}</span>
+                  <h2 className="text-xl font-heading font-bold text-[var(--text-primary)]">Products</h2>
+                  <span className="badge badge-gray">Total: {totalProducts}</span>
                 </div>
                 <Link to="/admin/products/new" className="btn-primary btn-sm"><Plus className="w-4 h-4" /> Add Product</Link>
               </div>
               <div className="card overflow-hidden relative">
                 {productsLoading && (
-                  <div className="absolute inset-0 bg-dark-900/40 backdrop-blur-[1px] z-20 flex items-center justify-center">
-                    <Loader2 className="w-8 h-8 text-primary-400 animate-spin" />
+                  <div className="absolute inset-0 bg-black/30 backdrop-blur-[1px] z-20 flex items-center justify-center">
+                    <Loader2 className="w-8 h-8 text-primary-500 animate-spin" />
                   </div>
                 )}
                 <div className="overflow-x-auto">
@@ -347,62 +345,58 @@ export default function AdminDashboard() {
                       {products.map(p => (
                         <tr key={p.id} className="table-row">
                           <td className="px-4 py-3">
-                            <div className="w-10 h-10 rounded-lg bg-dark-800 border border-dark-750 overflow-hidden flex items-center justify-center p-1 flex-shrink-0 shadow-sm">
+                            <div className="w-10 h-10 rounded-lg bg-[var(--bg-surface-hover)] border border-[var(--border-color)] overflow-hidden flex items-center justify-center p-1 flex-shrink-0 shadow-sm">
                               {p.primary_image?.image ? (
                                 <img 
                                   src={p.primary_image.image.startsWith('http') ? p.primary_image.image : `${API_BASE}${p.primary_image.image}`} 
                                   alt="" 
-                                  className="w-full h-full object-contain transition-transform hover:scale-125"
+                                  className="w-full h-full object-contain"
                                 />
                               ) : (
-                                <Package className="w-5 h-5 text-dark-600" />
+                                <Package className="w-5 h-5 text-[var(--text-subtle)]" />
                               )}
                             </div>
                           </td>
-                          <td className="px-4 py-3 font-medium text-white max-w-[200px] truncate" title={p.name}>{p.name}</td>
-                          <td className="px-4 py-3 text-dark-300 font-semibold">
+                          <td className="px-4 py-3 font-medium text-[var(--text-primary)] max-w-[200px] truncate" title={p.name}>{p.name}</td>
+                          <td className="px-4 py-3 text-[var(--text-muted)] font-semibold">
                             {p.discount_price ? (
-                              <div className="flex flex-col leading-tight mt-1">
-                                <span>₹{parseFloat(p.effective_price).toLocaleString('en-IN')}</span>
-                                <span className="text-[10px] text-dark-500 line-through">₹{parseFloat(p.price).toLocaleString('en-IN')}</span>
+                              <div className="flex flex-col leading-tight">
+                                <span className="text-[var(--text-primary)]">₹{parseFloat(p.effective_price).toLocaleString('en-IN')}</span>
+                                <span className="text-[10px] text-[var(--text-subtle)] line-through">₹{parseFloat(p.price).toLocaleString('en-IN')}</span>
                               </div>
                             ) : (
-                              <span>₹{parseFloat(p.price).toLocaleString('en-IN')}</span>
+                              <span className="text-[var(--text-primary)]">₹{parseFloat(p.price).toLocaleString('en-IN')}</span>
                             )}
                           </td>
-                          <td className="px-4 py-3"><span className={`font-mono px-2 py-0.5 rounded-md text-xs border ${p.stock === 0 ? 'text-danger border-red-950 bg-red-950/20' : p.stock <= 10 ? 'text-amber-400 border-amber-950 bg-amber-950/20' : 'text-green-400 border-green-950 bg-green-950/20'}`}>{p.stock}</span></td>
-                          <td className="px-4 py-3 text-dark-400 truncate max-w-[120px]">{p.category_name}</td>
+                          <td className="px-4 py-3"><span className={`font-mono px-2 py-0.5 rounded-md text-xs border ${p.stock === 0 ? 'badge-danger' : p.stock <= 10 ? 'badge-warning' : 'badge-success'}`}>{p.stock}</span></td>
+                          <td className="px-4 py-3 text-[var(--text-muted)] truncate max-w-[120px]">{p.category_name}</td>
                           <td className="px-4 py-3">
-                            <span className={`text-xs font-semibold px-2.5 py-1 rounded-full border shadow-sm ${
-                              p.seller_name === 'Admin' 
-                                ? 'bg-indigo-900/30 text-indigo-400 border-indigo-800/50' 
-                                : 'bg-emerald-900/30 text-emerald-400 border-emerald-800/50'
-                            }`}>
+                            <span className="badge badge-primary">
                               {p.seller_name}
                             </span>
                           </td>
                           <td className="px-4 py-3">
                             <button onClick={() => cycleProductApproval(p)} className="flex items-center justify-center hover:scale-110 transition-transform" title="Click to cycle approval status">
-                              {p.approval_status === 'approved' && <CheckCircle className="w-4 h-4 text-green-400" />}
-                              {p.approval_status === 'rejected' && <XCircle className="w-4 h-4 text-red-400" />}
-                              {p.approval_status === 'pending'  && <Clock className="w-4 h-4 text-amber-400" />}
+                              {p.approval_status === 'approved' && <CheckCircle className="w-4 h-4 text-emerald-500" />}
+                              {p.approval_status === 'rejected' && <XCircle className="w-4 h-4 text-red-500" />}
+                              {p.approval_status === 'pending'  && <Clock className="w-4 h-4 text-amber-500" />}
                             </button>
                           </td>
                           <td className="px-4 py-3">
                             <button onClick={() => handleToggleProductActive(p)} className="flex items-center justify-center hover:scale-110 transition-transform" title="Toggle active visibility">
-                              {p.is_active ? <CheckCircle className="w-4 h-4 text-green-400" /> : <X className="w-4 h-4 text-red-400" />}
+                              {p.is_active ? <CheckCircle className="w-4 h-4 text-emerald-500" /> : <X className="w-4 h-4 text-red-500" />}
                             </button>
                           </td>
                           <td className="px-4 py-3">
                             <div className="flex items-center gap-1.5">
-                              <button onClick={() => setViewProductModal(p.slug)} className="btn-ghost p-1.5 rounded-lg text-dark-400 hover:text-white hover:bg-dark-700" title="View Detail"><Eye className="w-4 h-4" /></button>
+                              <button onClick={() => setViewProductModal(p.slug)} className="btn-ghost p-1.5 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-primary)]" title="View Detail"><Eye className="w-4 h-4" /></button>
                               
                               {!p.seller && (
                                 <>
-                                  <Link to={`/admin/products/${p.slug}/edit`} className="btn-ghost p-1.5 rounded-lg text-dark-400 hover:text-primary-400 hover:bg-dark-700" title="Edit">
-                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                                  <Link to={`/admin/products/${p.slug}/edit`} className="btn-ghost p-1.5 rounded-lg text-[var(--text-muted)] hover:text-primary-500" title="Edit">
+                                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
                                   </Link>
-                                  <button onClick={() => handleDeleteProduct(p.slug)} className="btn-ghost p-1.5 rounded-lg text-dark-400 hover:text-danger hover:bg-dark-700" title="Delete"><Trash2 className="w-4 h-4" /></button>
+                                  <button onClick={() => handleDeleteProduct(p.slug)} className="btn-ghost p-1.5 rounded-lg text-[var(--text-muted)] hover:text-red-500" title="Delete"><Trash2 className="w-4 h-4" /></button>
                                 </>
                               )}
                             </div>
@@ -414,71 +408,25 @@ export default function AdminDashboard() {
                 </div>
               </div>
 
-              {/* Visual Pagination Controls */}
+              {/* Pagination Controls */}
               {totalPages > 1 && (
-                <div className="flex items-center justify-between bg-dark-850 px-5 py-3.5 border border-dark-700 mt-4 rounded-xl shadow-lg animate-fade-in">
-                  <div className="flex flex-1 justify-between sm:hidden">
-                    <button 
-                      onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                      disabled={currentPage === 1}
-                      className="btn-secondary btn-sm"
-                    >
-                      Previous
-                    </button>
-                    <button 
-                      onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                      disabled={currentPage === totalPages}
-                      className="btn-secondary btn-sm ml-3"
-                    >
-                      Next
-                    </button>
-                  </div>
-                  <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
-                    <div>
-                      <p className="text-xs text-dark-400">
-                        Showing <span className="font-bold text-white">{(currentPage - 1) * 12 + 1}</span> to <span className="font-bold text-white">{Math.min(currentPage * 12, totalProducts)}</span> of <span className="font-bold text-white">{totalProducts}</span> products
-                      </p>
-                    </div>
-                    <div>
-                      <nav className="isolate inline-flex rounded-md shadow-sm gap-1.5" aria-label="Pagination">
-                        <button
-                          onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                          disabled={currentPage === 1}
-                          className={`relative inline-flex items-center rounded-lg px-2.5 py-2 text-dark-400 border border-dark-700 bg-dark-800 hover:bg-dark-700 hover:text-white transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed active:scale-95`}
-                        >
-                          <ChevronLeft className="h-4 w-4" />
+                <div className="flex items-center justify-between card px-5 py-3.5 mt-4">
+                  <p className="text-xs text-[var(--text-muted)]">
+                    Showing <span className="font-bold text-[var(--text-primary)]">{(currentPage - 1) * 12 + 1}</span> to <span className="font-bold text-[var(--text-primary)]">{Math.min(currentPage * 12, totalProducts)}</span> of <span className="font-bold text-[var(--text-primary)]">{totalProducts}</span> products
+                  </p>
+                  <div className="flex items-center gap-1.5">
+                    <button onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))} disabled={currentPage === 1} className="btn-secondary btn-sm disabled:opacity-40"><ChevronLeft className="h-4 w-4" /></button>
+                    {[...Array(totalPages)].map((_, idx) => {
+                      const pNum = idx + 1;
+                      if (totalPages > 7 && Math.abs(pNum - currentPage) > 2 && pNum !== 1 && pNum !== totalPages) return null;
+                      return (
+                        <button key={pNum} onClick={() => setCurrentPage(pNum)}
+                          className={`w-8 h-8 rounded-lg text-xs font-bold transition-all border ${currentPage === pNum ? 'bg-primary-600 border-primary-500 text-white' : 'bg-[var(--bg-surface)] border-[var(--border-color)] text-[var(--text-muted)] hover:text-[var(--text-primary)]'}`}>
+                          {pNum}
                         </button>
-                        
-                        {[...Array(totalPages)].map((_, idx) => {
-                          const pNum = idx + 1;
-                          if (totalPages > 7 && Math.abs(pNum - currentPage) > 2 && pNum !== 1 && pNum !== totalPages) {
-                            if (Math.abs(pNum - currentPage) === 3) return <span key={pNum} className="text-dark-600 px-1 flex items-end pb-1">...</span>;
-                            return null;
-                          }
-                          
-                          return (
-                            <button
-                              key={pNum}
-                              onClick={() => setCurrentPage(pNum)}
-                              className={`relative inline-flex items-center px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all border cursor-pointer active:scale-95
-                                ${currentPage === pNum 
-                                  ? 'bg-primary-600 border-primary-500 text-white shadow-glow z-10 scale-105' 
-                                  : 'text-dark-400 border-dark-700 bg-dark-800 hover:bg-dark-700 hover:text-white'}`}
-                            >
-                              {pNum}
-                            </button>
-                          );
-                        })}
-
-                        <button
-                          onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                          disabled={currentPage === totalPages}
-                          className={`relative inline-flex items-center rounded-lg px-2.5 py-2 text-dark-400 border border-dark-700 bg-dark-800 hover:bg-dark-700 hover:text-white transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed active:scale-95`}
-                        >
-                          <ChevronRight className="h-4 w-4" />
-                        </button>
-                      </nav>
-                    </div>
+                      );
+                    })}
+                    <button onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))} disabled={currentPage === totalPages} className="btn-secondary btn-sm disabled:opacity-40"><ChevronRight className="h-4 w-4" /></button>
                   </div>
                 </div>
               )}
@@ -488,9 +436,8 @@ export default function AdminDashboard() {
           {tab === 'categories' && (
             <div className="space-y-5 animate-fade-in">
               <div className="flex items-center justify-between">
-                <h2 className="text-xl font-heading font-bold text-white">Categories</h2>
+                <h2 className="text-xl font-heading font-bold text-[var(--text-primary)]">Categories</h2>
                 <button onClick={() => { setEditCategoryData(null); setCatModalMode('category'); setIsCatModalOpen(true); }} className="btn-primary btn-sm"><Plus className="w-4 h-4" /> Create Category</button>
-
               </div>
               <div className="card overflow-hidden">
                 <div className="overflow-x-auto">
@@ -504,26 +451,26 @@ export default function AdminDashboard() {
                       {categories.filter(c => !c.parent).map(c => (
                         <tr key={c.id} className="table-row">
                           <td className="px-4 py-3">
-                            <div className="w-10 h-10 rounded-lg bg-dark-800 border border-dark-750 overflow-hidden flex items-center justify-center p-1">
+                            <div className="w-10 h-10 rounded-lg bg-[var(--bg-surface-hover)] border border-[var(--border-color)] overflow-hidden flex items-center justify-center p-1">
                               {c.image ? (
                                 <img src={c.image.startsWith('http') ? c.image : `${API_BASE}${c.image}`} alt="" className="w-full h-full object-contain" />
                               ) : (
-                                <Package className="w-5 h-5 text-dark-600" />
+                                <Package className="w-5 h-5 text-[var(--text-subtle)]" />
                               )}
                             </div>
                           </td>
-                          <td className="px-4 py-3 font-medium text-white">{c.name}</td>
-                          <td className="px-4 py-3 text-dark-300">{c.slug}</td>
-                          <td className="px-4 py-3 text-dark-400">
+                          <td className="px-4 py-3 font-medium text-[var(--text-primary)]">{c.name}</td>
+                          <td className="px-4 py-3 text-[var(--text-muted)]">{c.slug}</td>
+                          <td className="px-4 py-3 text-[var(--text-muted)]">
                             {categories.filter(sc => sc.parent === c.id).length} items
                           </td>
-                          <td className="px-4 py-3 text-dark-400 font-bold">{c.product_count || 0}</td>
+                          <td className="px-4 py-3 text-[var(--text-primary)] font-bold">{c.product_count || 0}</td>
                           <td className="px-4 py-3">
                             <div className="flex items-center gap-1.5">
-                              <button onClick={() => { setEditCategoryData(c); setCatModalMode('category'); setIsCatModalOpen(true); }} className="btn-ghost p-1.5 rounded-lg text-dark-400 hover:text-primary-400 hover:bg-dark-700" title="Edit">
-                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                              <button onClick={() => { setEditCategoryData(c); setCatModalMode('category'); setIsCatModalOpen(true); }} className="btn-ghost p-1.5 rounded-lg text-[var(--text-muted)] hover:text-primary-500" title="Edit">
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
                               </button>
-                              <button onClick={() => handleDeleteCategory(c.slug)} className="btn-ghost p-1.5 rounded-lg text-dark-400 hover:text-danger hover:bg-dark-700" title="Delete"><Trash2 className="w-4 h-4" /></button>
+                              <button onClick={() => handleDeleteCategory(c.slug)} className="btn-ghost p-1.5 rounded-lg text-[var(--text-muted)] hover:text-red-500" title="Delete"><Trash2 className="w-4 h-4" /></button>
                             </div>
                           </td>
                         </tr>
@@ -538,9 +485,8 @@ export default function AdminDashboard() {
           {tab === 'subcategories' && (
             <div className="space-y-5 animate-fade-in">
               <div className="flex items-center justify-between">
-                <h2 className="text-xl font-heading font-bold text-white">Subcategories</h2>
+                <h2 className="text-xl font-heading font-bold text-[var(--text-primary)]">Subcategories</h2>
                 <button onClick={() => { setEditCategoryData(null); setCatModalMode('subcategory'); setIsCatModalOpen(true); }} className="btn-primary btn-sm"><Plus className="w-4 h-4" /> Create Subcategory</button>
-
               </div>
               <div className="card overflow-hidden">
                 <div className="overflow-x-auto">
@@ -556,28 +502,28 @@ export default function AdminDashboard() {
                         return (
                           <tr key={c.id} className="table-row">
                             <td className="px-4 py-3">
-                              <div className="w-8 h-8 rounded-lg bg-dark-800 border border-dark-750 overflow-hidden flex items-center justify-center p-1">
+                              <div className="w-8 h-8 rounded-lg bg-[var(--bg-surface-hover)] border border-[var(--border-color)] overflow-hidden flex items-center justify-center p-1">
                                 {c.image ? (
                                   <img src={c.image.startsWith('http') ? c.image : `${API_BASE}${c.image}`} alt="" className="w-full h-full object-contain" />
                                 ) : (
-                                  <Layers className="w-4 h-4 text-dark-600" />
+                                  <Layers className="w-4 h-4 text-[var(--text-subtle)]" />
                                 )}
                               </div>
                             </td>
-                            <td className="px-4 py-3 font-medium text-white">{c.name}</td>
+                            <td className="px-4 py-3 font-medium text-[var(--text-primary)]">{c.name}</td>
                             <td className="px-4 py-3">
-                              <span className="text-xs font-medium px-2 py-0.5 rounded bg-dark-700 text-primary-300 border border-dark-600">
+                              <span className="badge badge-gray">
                                 {parent ? parent.name : 'Main'}
                               </span>
                             </td>
-                            <td className="px-4 py-3 text-dark-300">{c.slug}</td>
-                            <td className="px-4 py-3 text-dark-400 font-bold">{c.product_count || 0}</td>
+                            <td className="px-4 py-3 text-[var(--text-muted)]">{c.slug}</td>
+                            <td className="px-4 py-3 text-[var(--text-primary)] font-bold">{c.product_count || 0}</td>
                             <td className="px-4 py-3">
                               <div className="flex items-center gap-1.5">
-                                <button onClick={() => { setEditCategoryData(c); setCatModalMode('subcategory'); setIsCatModalOpen(true); }} className="btn-ghost p-1.5 rounded-lg text-dark-400 hover:text-primary-400 hover:bg-dark-700" title="Edit">
-                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                                <button onClick={() => { setEditCategoryData(c); setCatModalMode('subcategory'); setIsCatModalOpen(true); }} className="btn-ghost p-1.5 rounded-lg text-[var(--text-muted)] hover:text-primary-500" title="Edit">
+                                  <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
                                 </button>
-                                <button onClick={() => handleDeleteCategory(c.slug)} className="btn-ghost p-1.5 rounded-lg text-dark-400 hover:text-danger hover:bg-dark-700" title="Delete"><Trash2 className="w-4 h-4" /></button>
+                                <button onClick={() => handleDeleteCategory(c.slug)} className="btn-ghost p-1.5 rounded-lg text-[var(--text-muted)] hover:text-red-500" title="Delete"><Trash2 className="w-4 h-4" /></button>
                               </div>
                             </td>
                           </tr>
@@ -592,7 +538,7 @@ export default function AdminDashboard() {
 
           {tab === 'orders' && (
             <div className="space-y-5 animate-fade-in">
-              <h2 className="text-xl font-heading font-bold text-white">All Orders</h2>
+              <h2 className="text-xl font-heading font-bold text-[var(--text-primary)]">All Orders</h2>
               <div className="card overflow-hidden">
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
@@ -604,21 +550,21 @@ export default function AdminDashboard() {
                     <tbody>
                       {orders.map(o => (
                         <tr key={o.id} className="table-row">
-                          <td className="px-4 py-3 font-mono text-primary-400 text-xs">#{o.order_number}</td>
-                          <td className="px-4 py-3 text-dark-300 max-w-[160px] truncate">{o.user_email}</td>
-                          <td className="px-4 py-3 font-semibold text-white">₹{parseFloat(o.total_price).toLocaleString('en-IN')}</td>
+                          <td className="px-4 py-3 font-mono text-primary-500 text-xs font-semibold">#{o.order_number}</td>
+                          <td className="px-4 py-3 text-[var(--text-muted)] max-w-[160px] truncate">{o.user_email}</td>
+                          <td className="px-4 py-3 font-semibold text-[var(--text-primary)]">₹{parseFloat(o.total_price).toLocaleString('en-IN')}</td>
                           <td className="px-4 py-3"><span className={`status-${o.payment_status}`}>{o.payment_status}</span></td>
                           <td className="px-4 py-3">
                             <select value={o.order_status} onChange={(e) => handleOrderStatus(o.id, e.target.value)}
-                              className="text-xs bg-dark-700 border border-dark-600 text-white rounded-lg px-2 py-1 focus:outline-none focus:border-primary-500">
+                              className="input text-xs py-1 px-2">
                               {['pending','confirmed','processing','shipped','out_for_delivery','delivered','cancelled'].map(s => (
                                 <option key={s} value={s}>{s}</option>
                               ))}
                             </select>
                           </td>
-                          <td className="px-4 py-3 text-dark-400 text-xs">{new Date(o.created_at).toLocaleDateString('en-IN')}</td>
+                          <td className="px-4 py-3 text-[var(--text-subtle)] text-xs">{new Date(o.created_at).toLocaleDateString('en-IN')}</td>
                           <td className="px-4 py-3">
-                            <Link to={`/orders/${o.id}`} className="btn-ghost p-1.5 rounded-lg text-dark-400 hover:text-white"><Eye className="w-4 h-4" /></Link>
+                            <Link to={`/orders/${o.id}`} className="btn-ghost p-1.5 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-primary)]"><Eye className="w-4 h-4" /></Link>
                           </td>
                         </tr>
                       ))}
@@ -631,7 +577,7 @@ export default function AdminDashboard() {
 
           {tab === 'users' && (
             <div className="space-y-5 animate-fade-in">
-              <h2 className="text-xl font-heading font-bold text-white">All Users</h2>
+              <h2 className="text-xl font-heading font-bold text-[var(--text-primary)]">All Users</h2>
               <div className="card overflow-hidden">
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
@@ -648,13 +594,13 @@ export default function AdminDashboard() {
                               <div className="w-7 h-7 bg-gradient-to-br from-primary-500 to-cyan-500 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0">
                                 {u.full_name?.[0]?.toUpperCase() || 'U'}
                               </div>
-                              <span className="font-medium text-white">{u.full_name}</span>
+                              <span className="font-medium text-[var(--text-primary)]">{u.full_name}</span>
                             </div>
                           </td>
-                          <td className="px-4 py-3 text-dark-300">{u.email}</td>
-                          <td className="px-4 py-3 text-dark-400">{u.phone || '—'}</td>
+                          <td className="px-4 py-3 text-[var(--text-muted)]">{u.email}</td>
+                          <td className="px-4 py-3 text-[var(--text-subtle)]">{u.phone || '—'}</td>
                           <td className="px-4 py-3"><span className={u.role === 'admin' ? 'badge-primary badge' : u.role === 'seller' ? 'badge-success badge' : 'badge-gray badge'}>{u.role}</span></td>
-                          <td className="px-4 py-3 text-dark-400 text-xs">{new Date(u.date_joined).toLocaleDateString('en-IN')}</td>
+                          <td className="px-4 py-3 text-[var(--text-subtle)] text-xs">{new Date(u.date_joined).toLocaleDateString('en-IN')}</td>
                           <td className="px-4 py-3"><span className="badge-success badge">Active</span></td>
                         </tr>
                       ))}
@@ -665,21 +611,15 @@ export default function AdminDashboard() {
             </div>
           )}
 
-          {/* ── Sellers Tab ── */}
           {tab === 'sellers' && (
             <div className="space-y-5 animate-fade-in">
               <div className="flex items-center justify-between">
-                <h2 className="text-xl font-heading font-bold text-white">Seller Applications</h2>
+                <h2 className="text-xl font-heading font-bold text-[var(--text-primary)]">Seller Applications</h2>
                 <div className="flex gap-2">
                   {['', 'pending', 'approved', 'rejected'].map(s => (
                     <button key={s || 'all'}
                       onClick={() => dispatch(fetchAdminStores(s))}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-semibold border transition-all ${
-                        s === '' ? 'bg-dark-700 border-dark-600 text-white' :
-                        s === 'pending'  ? 'bg-amber-900/30 border-amber-700/50 text-amber-400' :
-                        s === 'approved' ? 'bg-green-900/30 border-green-700/50 text-green-400' :
-                        'bg-red-900/30 border-red-700/50 text-red-400'
-                      }`}>
+                      className="btn-secondary btn-sm text-xs font-semibold capitalize">
                       {s || 'All'} {s && `(${adminStores.filter(st => st.status === s).length})`}
                     </button>
                   ))}
@@ -688,8 +628,8 @@ export default function AdminDashboard() {
 
               {adminStores.length === 0 ? (
                 <div className="card p-12 text-center">
-                  <Store className="w-12 h-12 text-dark-600 mx-auto mb-3" />
-                  <p className="text-dark-400">No seller applications yet.</p>
+                  <Store className="w-12 h-12 text-[var(--text-subtle)] mx-auto mb-3" />
+                  <p className="text-[var(--text-muted)]">No seller applications yet.</p>
                 </div>
               ) : (
                 <div className="card overflow-hidden">
@@ -704,32 +644,32 @@ export default function AdminDashboard() {
                         {adminStores.map(s => (
                           <tr key={s.id} className="table-row">
                             <td className="px-4 py-3">
-                              <div className="font-medium text-white">{s.store_name}</div>
-                              {s.description && <div className="text-xs text-dark-500 truncate max-w-[160px]">{s.description}</div>}
+                              <div className="font-medium text-[var(--text-primary)]">{s.store_name}</div>
+                              {s.description && <div className="text-xs text-[var(--text-subtle)] truncate max-w-[160px]">{s.description}</div>}
                             </td>
                             <td className="px-4 py-3">
-                              <div className="text-dark-300">{s.owner_name}</div>
-                              <div className="text-xs text-dark-500">{s.owner_email}</div>
+                              <div className="text-[var(--text-muted)]">{s.owner_name}</div>
+                              <div className="text-xs text-[var(--text-subtle)]">{s.owner_email}</div>
                             </td>
-                            <td className="px-4 py-3 text-dark-400">{s.phone || '—'}</td>
-                            <td className="px-4 py-3 font-mono text-xs text-dark-400">{s.gstin || '—'}</td>
+                            <td className="px-4 py-3 text-[var(--text-subtle)]">{s.phone || '—'}</td>
+                            <td className="px-4 py-3 font-mono text-xs text-[var(--text-subtle)]">{s.gstin || '—'}</td>
                             <td className="px-4 py-3">
                               {s.status === 'pending'  && <span className="status-pending flex items-center gap-1"><Clock className="w-3 h-3" /> Pending</span>}
                               {s.status === 'approved' && <span className="status-delivered flex items-center gap-1"><CheckCircle className="w-3 h-3" /> Approved</span>}
                               {s.status === 'rejected' && <span className="status-cancelled flex items-center gap-1"><XCircle className="w-3 h-3" /> Rejected</span>}
                             </td>
-                            <td className="px-4 py-3 text-dark-400 text-xs">{new Date(s.created_at).toLocaleDateString('en-IN')}</td>
+                            <td className="px-4 py-3 text-[var(--text-subtle)] text-xs">{new Date(s.created_at).toLocaleDateString('en-IN')}</td>
                             <td className="px-4 py-3">
                               <div className="flex items-center gap-2">
                                 {s.status !== 'approved' && (
                                   <button onClick={() => handleApprove(s.id)}
-                                    className="px-2 py-1 rounded-lg text-xs font-semibold bg-green-900/30 border border-green-700/50 text-green-400 hover:bg-green-900/50 transition-colors">
+                                    className="px-2 py-1 rounded-lg text-xs font-semibold bg-emerald-500/10 border border-emerald-500/30 text-emerald-500 hover:bg-emerald-500/20 transition-colors">
                                     ✓ Approve
                                   </button>
                                 )}
                                 {s.status !== 'rejected' && (
                                   <button onClick={() => { setRejectModal(s.id); setRejectReason(''); }}
-                                    className="px-2 py-1 rounded-lg text-xs font-semibold bg-red-900/30 border border-red-700/50 text-red-400 hover:bg-red-900/50 transition-colors">
+                                    className="px-2 py-1 rounded-lg text-xs font-semibold bg-red-500/10 border border-red-500/30 text-red-500 hover:bg-red-500/20 transition-colors">
                                     ✗ Reject
                                   </button>
                                 )}
@@ -746,10 +686,10 @@ export default function AdminDashboard() {
           )}
         </main>
         
-        <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-dark-800 border-t border-dark-700 flex z-40">
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-[var(--bg-surface)] border-t border-[var(--border-color)] flex z-40">
           {TABS.map(({ id, label, icon: Icon }) => (
             <button key={id} onClick={() => setTab(id)}
-              className={`flex-1 flex flex-col items-center py-3 text-xs font-medium transition-colors ${tab === id ? 'text-primary-400 bg-primary-900/10' : 'text-dark-500'}`}>
+              className={`flex-1 flex flex-col items-center py-3 text-xs font-medium transition-colors ${tab === id ? 'text-primary-500 font-semibold' : 'text-[var(--text-muted)]'}`}>
               <Icon className="w-5 h-5 mb-1" />{label}
             </button>
           ))}
@@ -761,10 +701,10 @@ export default function AdminDashboard() {
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 px-4">
           <div className="card p-6 w-full max-w-md animate-slide-up">
             <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-bold text-white">Reject Store</h3>
+              <h3 className="text-lg font-bold text-[var(--text-primary)]">Reject Store</h3>
               <button onClick={() => setRejectModal(null)} className="btn-ghost p-1"><X className="w-5 h-5" /></button>
             </div>
-            <p className="text-sm text-dark-400 mb-4">Provide a reason for rejection (optional — will be shown to the seller):</p>
+            <p className="text-sm text-[var(--text-muted)] mb-4">Provide a reason for rejection (optional — will be shown to the seller):</p>
             <textarea className="input" rows={3}
               placeholder="e.g. Incomplete business information, invalid GSTIN, etc."
               value={rejectReason} onChange={e => setRejectReason(e.target.value)} />
@@ -792,11 +732,10 @@ export default function AdminDashboard() {
         parentCategories={categories}
         initialData={editCategoryData}
         onSuccess={(newCat) => {
-          loadData(); // Refresh table after create/update
+          loadData();
           if (newCat.parent) setTab('subcategories'); else setTab('categories');
         }}
       />
     </div>
   );
 }
-

@@ -47,18 +47,18 @@ export default function Cart() {
   );
 
   return (
-    <div className="min-h-screen pt-20">
+    <div className="min-h-screen bg-[var(--bg-page)] transition-colors duration-300">
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h1 className="text-2xl font-heading font-bold text-white mb-2 flex items-center gap-2">
-          <ShoppingCart className="w-6 h-6 text-primary-400" /> Shopping Cart
+        <h1 className="text-2xl font-heading font-bold text-[var(--text-primary)] mb-2 flex items-center gap-2">
+          <ShoppingCart className="w-6 h-6 text-primary-500" /> Shopping Cart
           {total_items > 0 && <span className="badge badge-primary ml-1">{total_items} items</span>}
         </h1>
 
         {items.length === 0 ? (
-          <div className="flex flex-col items-center justify-center py-24 text-center">
-            <ShoppingBag className="w-20 h-20 text-dark-600 mb-4" />
-            <h2 className="text-xl font-semibold text-white mb-2">Your cart is empty</h2>
-            <p className="text-dark-400 mb-8">Looks like you haven't added anything yet</p>
+          <div className="flex flex-col items-center justify-center py-24 text-center card p-8">
+            <ShoppingBag className="w-20 h-20 text-[var(--text-subtle)] mb-4" />
+            <h2 className="text-xl font-semibold text-[var(--text-primary)] mb-2">Your cart is empty</h2>
+            <p className="text-[var(--text-muted)] mb-8">Looks like you haven't added anything yet</p>
             <Link to="/products" className="btn-primary btn-lg">Start Shopping</Link>
           </div>
         ) : (
@@ -73,10 +73,10 @@ export default function Cart() {
                     {/* Image */}
                     <Link to={`/products/${item.product?.slug}`} className="flex-shrink-0">
                       {imgUrl ? (
-                        <img src={imgUrl} alt={item.product?.name} className="w-24 h-24 object-cover rounded-xl" />
+                        <img src={imgUrl} alt={item.product?.name} className="w-24 h-24 object-cover rounded-xl border border-[var(--border-color)]" />
                       ) : (
-                        <div className="w-24 h-24 bg-dark-700 rounded-xl flex items-center justify-center">
-                          <ShoppingCart className="w-8 h-8 text-dark-500" />
+                        <div className="w-24 h-24 bg-[var(--bg-surface-hover)] rounded-xl flex items-center justify-center border border-[var(--border-color)]">
+                          <ShoppingCart className="w-8 h-8 text-[var(--text-subtle)]" />
                         </div>
                       )}
                     </Link>
@@ -84,29 +84,29 @@ export default function Cart() {
                     {/* Info */}
                     <div className="flex-1 min-w-0">
                       <Link to={`/products/${item.product?.slug}`}>
-                        <h3 className="font-semibold text-white hover:text-primary-400 transition-colors line-clamp-2">{item.product?.name}</h3>
+                        <h3 className="font-semibold text-[var(--text-primary)] hover:text-primary-500 transition-colors line-clamp-2">{item.product?.name}</h3>
                       </Link>
-                      <p className="text-sm text-dark-400 mt-0.5">{item.product?.category_name}</p>
-                      <p className="text-lg font-bold text-white mt-2">₹{parseFloat(item.unit_price).toLocaleString('en-IN')}</p>
+                      <p className="text-sm text-[var(--text-muted)] mt-0.5">{item.product?.category_name}</p>
+                      <p className="text-lg font-bold text-[var(--text-primary)] mt-2">₹{parseFloat(item.unit_price).toLocaleString('en-IN')}</p>
                     </div>
 
                     {/* Quantity & Remove */}
                     <div className="flex flex-col items-end justify-between flex-shrink-0">
-                      <button onClick={() => handleRemove(item.id)} className="text-dark-500 hover:text-danger transition-colors opacity-0 group-hover:opacity-100">
+                      <button onClick={() => handleRemove(item.id)} className="text-[var(--text-subtle)] hover:text-red-500 transition-colors">
                         <Trash2 className="w-4 h-4" />
                       </button>
-                      <div className="flex items-center bg-dark-700 border border-dark-600 rounded-lg overflow-hidden">
+                      <div className="flex items-center bg-[var(--bg-surface-hover)] border border-[var(--border-color)] rounded-lg overflow-hidden">
                         <button onClick={() => item.quantity > 1 ? handleUpdateQty(item.id, item.quantity - 1) : handleRemove(item.id)}
-                          className="px-2.5 py-1.5 text-dark-300 hover:text-white hover:bg-dark-600 transition-colors">
+                          className="px-2.5 py-1.5 text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--border-color)] transition-colors">
                           <Minus className="w-3 h-3" />
                         </button>
-                        <span className="px-3 py-1.5 text-sm font-medium text-white">{item.quantity}</span>
+                        <span className="px-3 py-1.5 text-sm font-medium text-[var(--text-primary)]">{item.quantity}</span>
                         <button onClick={() => handleUpdateQty(item.id, item.quantity + 1)}
-                          className="px-2.5 py-1.5 text-dark-300 hover:text-white hover:bg-dark-600 transition-colors">
+                          className="px-2.5 py-1.5 text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--border-color)] transition-colors">
                           <Plus className="w-3 h-3" />
                         </button>
                       </div>
-                      <p className="text-sm font-semibold text-primary-400">₹{parseFloat(item.total_price).toLocaleString('en-IN')}</p>
+                      <p className="text-sm font-semibold text-primary-500">₹{parseFloat(item.total_price).toLocaleString('en-IN')}</p>
                     </div>
                   </div>
                 );
@@ -116,22 +116,22 @@ export default function Cart() {
             {/* Summary */}
             <div className="lg:w-80 flex-shrink-0">
               <div className="card p-6 sticky top-24 space-y-4">
-                <h2 className="font-heading font-bold text-white text-lg">Order Summary</h2>
+                <h2 className="font-heading font-bold text-[var(--text-primary)] text-lg">Order Summary</h2>
                 <div className="space-y-2 text-sm">
-                  <div className="flex justify-between text-dark-300">
+                  <div className="flex justify-between text-[var(--text-muted)]">
                     <span>Subtotal ({total_items} items)</span>
                     <span>₹{subtotal.toLocaleString('en-IN')}</span>
                   </div>
-                  <div className="flex justify-between text-dark-300">
+                  <div className="flex justify-between text-[var(--text-muted)]">
                     <span>Shipping</span>
-                    <span className={shipping === 0 ? 'text-green-400' : ''}>
+                    <span className={shipping === 0 ? 'text-emerald-500 font-medium' : ''}>
                       {shipping === 0 ? 'FREE' : `₹${shipping}`}
                     </span>
                   </div>
                   {subtotal < 500 && (
-                    <p className="text-xs text-amber-400">Add ₹{500 - subtotal} more for free shipping!</p>
+                    <p className="text-xs text-amber-500 font-medium">Add ₹{500 - subtotal} more for free shipping!</p>
                   )}
-                  <div className="border-t border-dark-700 pt-2 flex justify-between font-bold text-white text-base">
+                  <div className="border-t border-[var(--border-color)] pt-2 flex justify-between font-bold text-[var(--text-primary)] text-base">
                     <span>Total</span>
                     <span>₹{total.toLocaleString('en-IN')}</span>
                   </div>

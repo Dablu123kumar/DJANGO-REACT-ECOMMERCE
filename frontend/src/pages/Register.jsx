@@ -38,30 +38,30 @@ export default function Register() {
   ];
 
   return (
-    <div className="min-h-screen bg-dark-900 flex items-center justify-center px-4 py-8">
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-1/4 right-1/4 w-96 h-96 bg-primary-600/5 rounded-full blur-3xl" />
-        <div className="absolute bottom-1/4 left-1/4 w-64 h-64 bg-cyan-600/5 rounded-full blur-3xl" />
+    <div className="min-h-screen bg-[var(--bg-page)] flex items-center justify-center px-4 py-8 transition-colors duration-300">
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-1/4 right-1/4 w-96 h-96 bg-primary-500/10 rounded-full blur-3xl" />
+        <div className="absolute bottom-1/4 left-1/4 w-64 h-64 bg-cyan-500/10 rounded-full blur-3xl" />
       </div>
-      <div className="relative w-full max-w-md">
+      <div className="relative w-full max-w-md my-8">
         <div className="text-center mb-8">
           <Link to="/" className="inline-flex items-center gap-2">
             <div className="w-10 h-10 bg-gradient-to-br from-primary-500 to-cyan-500 rounded-xl flex items-center justify-center shadow-glow">
               <Package className="w-6 h-6 text-white" />
             </div>
-            <span className="font-heading font-bold text-white text-2xl">ShopElite</span>
+            <span className="font-heading font-bold text-[var(--text-primary)] text-2xl">ShopElite</span>
           </Link>
-          <h1 className="text-2xl font-heading font-bold text-white mt-6 mb-1">Create Account</h1>
-          <p className="text-dark-400 text-sm">Join thousands of happy shoppers</p>
+          <h1 className="text-2xl font-heading font-bold text-[var(--text-primary)] mt-6 mb-1">Create Account</h1>
+          <p className="text-[var(--text-muted)] text-sm">Join thousands of happy shoppers</p>
         </div>
 
-        <div className="glass-card p-8">
+        <div className="glass-card p-8 shadow-xl">
           <form onSubmit={handleSubmit} className="space-y-4">
             {fields.map(({ name, label, type, icon: Icon, placeholder }) => (
               <div key={name}>
                 <label className="label">{label}</label>
                 <div className="relative">
-                  <Icon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-dark-400" />
+                  <Icon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-subtle)]" />
                   <input type={type} value={form[name]} onChange={(e) => setForm(p => ({ ...p, [name]: e.target.value }))}
                     className="input pl-10" placeholder={placeholder} required={name !== 'phone'} />
                 </div>
@@ -70,12 +70,12 @@ export default function Register() {
             <div>
               <label className="label">Password</label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-dark-400" />
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-subtle)]" />
                 <input type={showPassword ? 'text' : 'password'} value={form.password}
                   onChange={(e) => setForm(p => ({ ...p, password: e.target.value }))}
                   className="input pl-10 pr-10" placeholder="Min 8 characters" required />
                 <button type="button" onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-dark-400 hover:text-white">
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[var(--text-subtle)] hover:text-[var(--text-primary)]">
                   {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                 </button>
               </div>
@@ -83,7 +83,7 @@ export default function Register() {
             <div>
               <label className="label">Confirm Password</label>
               <div className="relative">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-dark-400" />
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[var(--text-subtle)]" />
                 <input type="password" value={form.password_confirm}
                   onChange={(e) => setForm(p => ({ ...p, password_confirm: e.target.value }))}
                   className="input pl-10" placeholder="Repeat password" required />
@@ -93,9 +93,9 @@ export default function Register() {
               {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : 'Create Account'}
             </button>
           </form>
-          <p className="text-center text-sm text-dark-400 mt-6">
+          <p className="text-center text-sm text-[var(--text-muted)] mt-6">
             Already have an account?{' '}
-            <Link to="/login" className="text-primary-400 hover:text-primary-300 font-medium transition-colors">Sign in</Link>
+            <Link to="/login" className="text-primary-500 hover:text-primary-600 font-medium transition-colors">Sign in</Link>
           </p>
         </div>
       </div>

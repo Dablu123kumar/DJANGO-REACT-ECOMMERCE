@@ -49,7 +49,7 @@ class ProductListSerializer(serializers.ModelSerializer):
             'id', 'name', 'slug', 'price', 'discount_price', 'effective_price',
             'discount_percentage', 'stock', 'in_stock', 'is_featured', 'is_active',
             'approval_status', 'average_rating', 'review_count', 'primary_image', 
-            'category_name', 'tags', 'seller', 'seller_name',
+            'category_name', 'tags', 'sizes', 'seller', 'seller_name',
         )
 
 

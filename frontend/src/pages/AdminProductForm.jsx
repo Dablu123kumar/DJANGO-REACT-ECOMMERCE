@@ -56,7 +56,6 @@ export default function AdminProductForm() {
           setExistingImages(p.images || []);
           
           const catId = p.category?.id || p.category;
-          // Determine which are main vs sub in state
           const currentCat = allCats.find(c => c.id === catId);
           if (currentCat) {
             if (currentCat.parent) {
@@ -88,7 +87,6 @@ export default function AdminProductForm() {
     init();
   }, [slug, isEdit, navigate]);
 
-  // Keep the flat form field updated with correct ultimate child selection
   useEffect(() => {
     setField('category', subCat || mainCat);
   }, [mainCat, subCat]);
@@ -169,26 +167,25 @@ export default function AdminProductForm() {
     setSaving(false);
   };
 
-  // Categorization lists derived from master list
   const topLevelCats = categories.filter(c => !c.parent);
   const subCats = categories.filter(c => c.parent === parseInt(mainCat));
 
   if (loading) return (
-    <div className="min-h-screen pt-24 flex items-center justify-center bg-dark-900">
-      <Loader2 className="w-8 h-8 text-primary-400 animate-spin" />
+    <div className="min-h-screen pt-24 flex items-center justify-center bg-[var(--bg-page)]">
+      <Loader2 className="w-8 h-8 text-primary-500 animate-spin" />
     </div>
   );
 
   return (
-    <div className="min-h-screen pt-24 pb-16 bg-dark-900 px-4">
+    <div className="min-h-screen pt-24 pb-16 bg-[var(--bg-page)] px-4 transition-colors duration-300">
       <div className="max-w-3xl mx-auto">
         <div className="mb-6 flex items-center justify-between">
           <div className="flex items-center gap-4">
-            <Link to="/admin" className="btn-ghost p-2 rounded-xl text-dark-400 hover:text-white">
+            <Link to="/admin" className="btn-ghost p-2 rounded-xl text-[var(--text-muted)] hover:text-[var(--text-primary)]">
               <ArrowLeft className="w-5 h-5" />
             </Link>
-            <h1 className="text-2xl font-heading font-bold text-white flex items-center gap-2">
-              <Package className="w-6 h-6 text-primary-400" />
+            <h1 className="text-2xl font-heading font-bold text-[var(--text-primary)] flex items-center gap-2">
+              <Package className="w-6 h-6 text-primary-500" />
               {isEdit ? 'Edit Product (Admin)' : 'Add New Product (Admin)'}
             </h1>
           </div>
@@ -206,7 +203,7 @@ export default function AdminProductForm() {
               <div>
                 <div className="flex items-center justify-between mb-1.5">
                   <label className="label mb-0">Main Category *</label>
-                  <button type="button" onClick={() => setIsCatModalOpen(true)} className="text-xs flex items-center gap-1 text-primary-400 hover:text-white transition-colors font-medium">
+                  <button type="button" onClick={() => setIsCatModalOpen(true)} className="text-xs flex items-center gap-1 text-primary-500 hover:text-primary-600 transition-colors font-medium">
                     <Plus className="w-3 h-3" /> New
                   </button>
                 </div>
@@ -224,7 +221,7 @@ export default function AdminProductForm() {
               </div>
 
               <div>
-                <label className="label">Subcategory <span className="text-dark-500 text-xs font-normal">(Optional)</span></label>
+                <label className="label">Subcategory <span className="text-[var(--text-subtle)] text-xs font-normal">(Optional)</span></label>
                 <select 
                   className="input" 
                   value={subCat} 
@@ -251,7 +248,7 @@ export default function AdminProductForm() {
               </div>
 
               <div>
-                <label className="label">Discount Price (₹) <span className="text-dark-500">(Optional)</span></label>
+                <label className="label">Discount Price (₹) <span className="text-[var(--text-subtle)]">(Optional)</span></label>
                 <input className="input" type="number" step="0.01" min="0"
                   value={form.discount_price} onChange={e => setField('discount_price', e.target.value)} />
               </div>
@@ -264,22 +261,22 @@ export default function AdminProductForm() {
             </div>
 
             <div>
-              <label className="label">Tags <span className="text-dark-500">(comma separated)</span></label>
+              <label className="label">Tags <span className="text-[var(--text-subtle)]">(comma separated)</span></label>
               <input className="input" placeholder="electronics, headphones"
                 value={form.tags} onChange={e => setField('tags', e.target.value)} />
             </div>
             
-            <div className="pt-4 border-t border-dark-700">
+            <div className="pt-4 border-t border-[var(--border-color)]">
               <label className="label flex items-center gap-2 mb-4">
-                <ImageIcon className="w-3 h-3" /> Product Images
+                <ImageIcon className="w-3.5 h-3.5" /> Product Images
               </label>
               
               {existingImages.length > 0 && (
                 <div className="mb-4">
-                  <p className="text-xs text-dark-400 mb-2 uppercase tracking-wider font-semibold">Current Images</p>
+                  <p className="text-xs text-[var(--text-subtle)] mb-2 uppercase tracking-wider font-semibold">Current Images</p>
                   <div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-3">
                     {existingImages.map(img => (
-                      <div key={img.id} className="relative group rounded-xl overflow-hidden bg-dark-800 border border-dark-700 aspect-square">
+                      <div key={img.id} className="relative group rounded-xl overflow-hidden bg-[var(--bg-surface-hover)] border border-[var(--border-color)] aspect-square">
                         <img src={img.image} alt="Product" className="w-full h-full object-cover" />
                         {img.is_primary && (
                           <span className="absolute top-2 left-2 bg-primary-600 text-white text-[10px] font-bold px-2 py-0.5 rounded-full z-10">Primary</span>
@@ -296,10 +293,10 @@ export default function AdminProductForm() {
               )}
               
               <div className="mb-4">
-                {selectedImages.length > 0 && <p className="text-xs text-dark-400 mb-2 uppercase tracking-wider font-semibold">To be uploaded</p>}
+                {selectedImages.length > 0 && <p className="text-xs text-[var(--text-subtle)] mb-2 uppercase tracking-wider font-semibold">To be uploaded</p>}
                 <div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-8 gap-3">
                   {selectedImages.map((file, index) => (
-                    <div key={index} className="relative rounded-xl overflow-hidden bg-dark-800 border border-primary-500/50 aspect-square">
+                    <div key={index} className="relative rounded-xl overflow-hidden bg-[var(--bg-surface-hover)] border border-primary-500/50 aspect-square">
                       <img src={URL.createObjectURL(file)} alt="Preview" className="w-full h-full object-cover" />
                       <button type="button" title="Remove Selected Image" onClick={() => removeSelectedImage(index)} className="absolute top-2 right-2 p-1 bg-black/60 text-white hover:bg-red-500 rounded-full transition-colors z-10">
                         <X className="w-3 h-3" />
@@ -307,19 +304,19 @@ export default function AdminProductForm() {
                     </div>
                   ))}
                   
-                  <label className="flex flex-col items-center justify-center aspect-square rounded-xl border-2 border-dashed border-dark-600 hover:border-primary-500 hover:bg-primary-500/5 cursor-pointer transition-colors">
-                    <ImageIcon className="w-6 h-6 text-dark-400 mb-2" />
-                    <span className="text-xs text-dark-400 font-medium text-center px-2">Select Images</span>
+                  <label className="flex flex-col items-center justify-center aspect-square rounded-xl border-2 border-dashed border-[var(--border-color)] hover:border-primary-500 hover:bg-primary-500/5 cursor-pointer transition-colors">
+                    <ImageIcon className="w-6 h-6 text-[var(--text-subtle)] mb-2" />
+                    <span className="text-xs text-[var(--text-subtle)] font-medium text-center px-2">Select Images</span>
                     <input type="file" multiple accept="image/*" className="hidden" onChange={handleImageSelect} />
                   </label>
                 </div>
               </div>
             </div>
 
-            <div className="flex items-center gap-3 p-4 bg-dark-800 rounded-xl border border-dark-700">
-              <input type="checkbox" id="isActive" className="w-4 h-4 rounded border-dark-600 bg-dark-700 text-primary-500 focus:ring-primary-500"
+            <div className="flex items-center gap-3 p-4 bg-[var(--bg-surface-hover)] rounded-xl border border-[var(--border-color)]">
+              <input type="checkbox" id="isActive" className="w-4 h-4 rounded border-[var(--border-color)] text-primary-600 cursor-pointer"
                 checked={form.is_active} onChange={e => setField('is_active', e.target.checked)} />
-              <label htmlFor="isActive" className="text-sm font-medium text-white cursor-pointer select-none">
+              <label htmlFor="isActive" className="text-sm font-medium text-[var(--text-primary)] cursor-pointer select-none">
                 Product is active and visible in store
               </label>
             </div>
@@ -335,15 +332,13 @@ export default function AdminProductForm() {
         </form>
       </div>
 
-      {/* Modal overlay for runtime category generation */}
       <CreateCategoryModal 
         isOpen={isCatModalOpen} 
         onClose={() => setIsCatModalOpen(false)}
-        isSubcategory={true} // Usually if you're in product form, you might want to create a subcat
+        isSubcategory={true}
         parentCategories={categories}
         onSuccess={(newCat) => {
-          loadCategories(); // refresh list so selector is populated immediately
-          // Auto-select it for convenience
+          loadCategories();
           if (newCat.parent) {
             setMainCat(newCat.parent);
             setSubCat(newCat.id);

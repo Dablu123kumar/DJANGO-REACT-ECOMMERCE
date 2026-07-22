@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { Link, useLocation } from 'react-router-dom';
 import {
-  fetchSellerDashboard, fetchSellerProducts, fetchSellerOrders
+  fetchSellerDashboard, fetchSellerOrders
 } from '../redux/slices/sellerSlice';
 import {
   Store, Package, ShoppingBag, DollarSign, AlertTriangle,
@@ -26,10 +26,8 @@ export default function SellerDashboard() {
   const [categories, setCategories] = useState([]);
   const [isProductsOpen, setIsProductsOpen] = useState(false);
   const [isCatModalOpen, setIsCatModalOpen] = useState(false);
-  const [catModalMode, setCatModalMode] = useState('category'); // 'category' or 'subcategory'
+  const [catModalMode, setCatModalMode] = useState('category');
 
-
-  // Local state pagination
   const [localProducts, setLocalProducts] = useState([]);
   const [localProductsLoading, setLocalProductsLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
@@ -40,7 +38,7 @@ export default function SellerDashboard() {
     try {
       const res = await api.get('/categories/');
       setCategories(res.data.results || res.data);
-    } catch (e) {}
+    } catch {}
   };
 
   const fetchProducts = async (page) => {
@@ -50,7 +48,7 @@ export default function SellerDashboard() {
       setLocalProducts(res.data.results || res.data);
       setTotalProducts(res.data.count || res.data.length);
       setTotalPages(Math.ceil((res.data.count || res.data.length) / 12));
-    } catch (err) {
+    } catch {
       toast.error('Failed to fetch products');
     }
     setLocalProductsLoading(false);
@@ -60,7 +58,6 @@ export default function SellerDashboard() {
     dispatch(fetchSellerDashboard());
     dispatch(fetchSellerOrders());
     loadCategories();
-    // Seed products page 1
     fetchProducts(1);
     setCurrentPage(1);
   }, [dispatch]);
@@ -87,13 +84,12 @@ export default function SellerDashboard() {
   ];
 
   const STAT_CARDS = dashboard ? [
-    { label: 'Total Products', value: dashboard.total_products,  icon: Package,     color: 'text-primary-400', bg: 'bg-primary-900/30 border-primary-700/50', sub: `${dashboard.active_products} active` },
-    { label: 'Total Orders',   value: dashboard.total_orders,    icon: ShoppingBag, color: 'text-cyan-400',    bg: 'bg-cyan-900/30 border-cyan-700/50',       sub: `${dashboard.pending_orders} pending` },
-    { label: 'Revenue (paid)', value: `₹${parseFloat(dashboard.total_revenue || 0).toLocaleString('en-IN')}`, icon: DollarSign, color: 'text-green-400', bg: 'bg-green-900/30 border-green-700/50', sub: 'paid orders only' },
-    { label: 'Out of Stock',   value: dashboard.out_of_stock,    icon: AlertTriangle, color: 'text-amber-400', bg: 'bg-amber-900/30 border-amber-700/50',   sub: 'needs restocking' },
+    { label: 'Total Products', value: dashboard.total_products,  icon: Package,     color: 'text-primary-500', sub: `${dashboard.active_products} active` },
+    { label: 'Total Orders',   value: dashboard.total_orders,    icon: ShoppingBag, color: 'text-cyan-500',    sub: `${dashboard.pending_orders} pending` },
+    { label: 'Revenue (paid)', value: `₹${parseFloat(dashboard.total_revenue || 0).toLocaleString('en-IN')}`, icon: DollarSign, color: 'text-emerald-500', sub: 'paid orders only' },
+    { label: 'Out of Stock',   value: dashboard.out_of_stock,    icon: AlertTriangle, color: 'text-amber-500', sub: 'needs restocking' },
   ] : [];
 
-  // Build simple chart data from orders
   const chartData = (() => {
     const months = {};
     (orders || []).forEach(o => {
@@ -104,36 +100,37 @@ export default function SellerDashboard() {
   })();
 
   if (loading && !dashboard) return (
-    <div className="min-h-screen pt-24 flex items-center justify-center">
-      <Loader2 className="w-8 h-8 text-primary-400 animate-spin" />
+    <div className="min-h-screen pt-24 flex items-center justify-center bg-[var(--bg-page)]">
+      <Loader2 className="w-8 h-8 text-primary-500 animate-spin" />
     </div>
   );
 
   return (
-    <div className="h-screen bg-dark-900 flex overflow-hidden">
-      <aside className="hidden lg:flex flex-col w-56 bg-dark-800 border-r border-dark-700 h-full pt-6 px-3 flex-shrink-0">
+    <div className="h-screen bg-[var(--bg-page)] flex overflow-hidden transition-colors duration-300">
+      <aside className="hidden lg:flex flex-col w-56 bg-[var(--bg-surface)] border-r border-[var(--border-color)] h-full pt-6 px-3 flex-shrink-0">
         <div className="mb-8 px-3 flex items-start justify-between">
           <div>
             <div className="flex items-center gap-2 mb-1">
-              <Store className="w-4 h-4 text-primary-400" />
-              <p className="text-xs text-dark-500 font-semibold uppercase tracking-wider">Seller Panel</p>
+              <Store className="w-4 h-4 text-primary-500" />
+              <p className="text-xs text-[var(--text-subtle)] font-semibold uppercase tracking-wider">Seller Panel</p>
             </div>
             {dashboard?.store && (
-              <p className="text-sm text-white font-medium truncate max-w-[140px]">{dashboard.store.store_name}</p>
+              <p className="text-sm text-[var(--text-primary)] font-medium truncate max-w-[140px]">{dashboard.store.store_name}</p>
             )}
           </div>
-          <Link to="/" className="text-xs text-primary-400 hover:text-primary-300 pt-1">Exit</Link>
+          <Link to="/" className="text-xs text-primary-500 hover:text-primary-600 font-medium pt-1">Exit</Link>
         </div>
+
         {/* Overview */}
         <button onClick={() => setTab('overview')}
-          className={`flex items-center gap-3 px-3 py-2.5 rounded-xl mb-1 text-sm font-medium transition-all ${tab === 'overview' ? 'bg-primary-600 text-white shadow-glow' : 'text-dark-400 hover:text-white hover:bg-dark-700'}`}>
+          className={`flex items-center gap-3 px-3 py-2.5 rounded-xl mb-1 text-sm font-medium transition-all ${tab === 'overview' ? 'bg-primary-600 text-white shadow-glow font-semibold' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-hover)]'}`}>
           <BarChart2 className="w-4 h-4" /> Overview
         </button>
 
         {/* Products Dropdown */}
         <div className="mb-1">
           <button onClick={() => setIsProductsOpen(!isProductsOpen)}
-            className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${(tab === 'products' || tab === 'categories' || tab === 'subcategories') ? 'text-white' : 'text-dark-400 hover:text-white hover:bg-dark-700'}`}>
+            className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${(tab === 'products' || tab === 'categories' || tab === 'subcategories') ? 'text-[var(--text-primary)] font-semibold' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-hover)]'}`}>
             <div className="flex items-center gap-3">
               <Package className="w-4 h-4" /> Products
             </div>
@@ -141,17 +138,17 @@ export default function SellerDashboard() {
           </button>
           
           {isProductsOpen && (
-            <div className="ml-5 pl-3 border-l border-dark-700 mt-1 space-y-1 animate-slide-down">
+            <div className="ml-5 pl-3 border-l border-[var(--border-color)] mt-1 space-y-1 animate-slide-down">
               <button onClick={() => setTab('products')} 
-                className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs font-medium transition-all ${tab === 'products' ? 'text-primary-400 bg-primary-900/20' : 'text-dark-400 hover:text-white hover:bg-dark-800'}`}>
+                className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs font-medium transition-all ${tab === 'products' ? 'text-primary-500 font-bold bg-primary-500/10' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-hover)]'}`}>
                 <List className="w-3 h-3" /> Product List
               </button>
               <button onClick={() => setTab('categories')} 
-                className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs font-medium transition-all ${tab === 'categories' ? 'text-primary-400 bg-primary-900/20' : 'text-dark-400 hover:text-white hover:bg-dark-800'}`}>
+                className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs font-medium transition-all ${tab === 'categories' ? 'text-primary-500 font-bold bg-primary-500/10' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-hover)]'}`}>
                 <Package className="w-3 h-3" /> Categories
               </button>
               <button onClick={() => setTab('subcategories')} 
-                className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs font-medium transition-all ${tab === 'subcategories' ? 'text-primary-400 bg-primary-900/20' : 'text-dark-400 hover:text-white hover:bg-dark-800'}`}>
+                className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-xs font-medium transition-all ${tab === 'subcategories' ? 'text-primary-500 font-bold bg-primary-500/10' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-hover)]'}`}>
                 <Layers className="w-3 h-3" /> Subcategories
               </button>
             </div>
@@ -160,12 +157,12 @@ export default function SellerDashboard() {
 
         {/* Orders */}
         <button onClick={() => setTab('orders')}
-          className={`flex items-center gap-3 px-3 py-2.5 rounded-xl mb-1 text-sm font-medium transition-all ${tab === 'orders' ? 'bg-primary-600 text-white shadow-glow' : 'text-dark-400 hover:text-white hover:bg-dark-700'}`}>
+          className={`flex items-center gap-3 px-3 py-2.5 rounded-xl mb-1 text-sm font-medium transition-all ${tab === 'orders' ? 'bg-primary-600 text-white shadow-glow font-semibold' : 'text-[var(--text-muted)] hover:text-[var(--text-primary)] hover:bg-[var(--bg-surface-hover)]'}`}>
           <ShoppingBag className="w-4 h-4" /> Orders
         </button>
         <div className="mt-auto mb-6 px-3">
           <button onClick={() => { dispatch(fetchSellerDashboard()); fetchProducts(currentPage); dispatch(fetchSellerOrders()); }}
-            className="flex items-center gap-2 text-xs text-dark-500 hover:text-dark-300">
+            className="flex items-center gap-2 text-xs text-[var(--text-subtle)] hover:text-[var(--text-primary)]">
             <RefreshCw className="w-3 h-3" /> Refresh
           </button>
         </div>
@@ -178,7 +175,7 @@ export default function SellerDashboard() {
           {tab === 'overview' && (
             <div className="space-y-6 animate-fade-in">
               <div className="flex items-center justify-between">
-                <h1 className="text-2xl font-heading font-bold text-white">Seller Dashboard</h1>
+                <h1 className="text-2xl font-heading font-bold text-[var(--text-primary)]">Seller Dashboard</h1>
                 <Link to="/seller/products/new" className="btn-primary btn-sm">
                   <Plus className="w-4 h-4" /> Add Product
                 </Link>
@@ -186,16 +183,16 @@ export default function SellerDashboard() {
 
               {/* Stat cards */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                {STAT_CARDS.map(({ label, value, icon: Icon, color, bg, sub }) => (
-                  <div key={label} className={`card border p-5 ${bg}`}>
+                {STAT_CARDS.map(({ label, value, icon: Icon, color, sub }) => (
+                  <div key={label} className="card p-5">
                     <div className="flex items-center justify-between mb-3">
-                      <p className="text-sm text-dark-400">{label}</p>
-                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center ${bg}`}>
+                      <p className="text-sm text-[var(--text-muted)]">{label}</p>
+                      <div className="w-9 h-9 rounded-xl flex items-center justify-center bg-[var(--bg-surface-hover)] border border-[var(--border-color)]">
                         <Icon className={`w-5 h-5 ${color}`} />
                       </div>
                     </div>
-                    <p className="text-2xl font-bold text-white">{value}</p>
-                    <p className="text-xs text-dark-500 mt-1">{sub}</p>
+                    <p className="text-2xl font-bold text-[var(--text-primary)]">{value}</p>
+                    <p className="text-xs text-[var(--text-subtle)] mt-1">{sub}</p>
                   </div>
                 ))}
               </div>
@@ -203,15 +200,15 @@ export default function SellerDashboard() {
               {/* Chart */}
               {chartData.length > 0 && (
                 <div className="card p-5">
-                  <h3 className="font-semibold text-white mb-4 flex items-center gap-2">
-                    <TrendingUp className="w-4 h-4 text-primary-400" /> Orders by Month
+                  <h3 className="font-semibold text-[var(--text-primary)] mb-4 flex items-center gap-2">
+                    <TrendingUp className="w-4 h-4 text-primary-500" /> Orders by Month
                   </h3>
                   <ResponsiveContainer width="100%" height={200}>
                     <BarChart data={chartData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-                      <XAxis dataKey="month" stroke="#64748b" fontSize={12} />
-                      <YAxis stroke="#64748b" fontSize={12} />
-                      <Tooltip contentStyle={{ backgroundColor: '#1e293b', border: '1px solid #334155', borderRadius: '8px', color: '#f1f5f9' }} />
+                      <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
+                      <XAxis dataKey="month" stroke="var(--text-subtle)" fontSize={12} />
+                      <YAxis stroke="var(--text-subtle)" fontSize={12} />
+                      <Tooltip contentStyle={{ backgroundColor: 'var(--bg-surface)', borderColor: 'var(--border-color)', borderRadius: '8px', color: 'var(--text-primary)' }} />
                       <Bar dataKey="orders" fill="#3b82f6" radius={[4, 4, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
@@ -221,7 +218,7 @@ export default function SellerDashboard() {
               {/* Recent orders */}
               {orders.length > 0 && (
                 <div className="card p-5">
-                  <h3 className="font-semibold text-white mb-4">Recent Orders</h3>
+                  <h3 className="font-semibold text-[var(--text-primary)] mb-4">Recent Orders</h3>
                   <div className="overflow-x-auto">
                     <table className="w-full text-sm">
                       <thead><tr className="table-header">
@@ -232,11 +229,11 @@ export default function SellerDashboard() {
                       <tbody>
                         {orders.slice(0, 6).map(o => (
                           <tr key={o.id} className="table-row">
-                            <td className="px-3 py-2.5 font-mono text-primary-400 text-xs">#{o.order_number}</td>
-                            <td className="px-3 py-2.5 text-dark-300">{o.user_email}</td>
-                            <td className="px-3 py-2.5 font-semibold text-white">₹{parseFloat(o.total_price).toLocaleString('en-IN')}</td>
+                            <td className="px-3 py-2.5 font-mono text-primary-500 text-xs font-semibold">#{o.order_number}</td>
+                            <td className="px-3 py-2.5 text-[var(--text-muted)]">{o.user_email}</td>
+                            <td className="px-3 py-2.5 font-semibold text-[var(--text-primary)]">₹{parseFloat(o.total_price).toLocaleString('en-IN')}</td>
                             <td className="px-3 py-2.5"><span className={`status-${o.order_status}`}>{o.order_status}</span></td>
-                            <td className="px-3 py-2.5 text-dark-400">{new Date(o.created_at).toLocaleDateString('en-IN')}</td>
+                            <td className="px-3 py-2.5 text-[var(--text-subtle)]">{new Date(o.created_at).toLocaleDateString('en-IN')}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -252,8 +249,8 @@ export default function SellerDashboard() {
             <div className="space-y-5 animate-fade-in">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <h2 className="text-xl font-heading font-bold text-white">My Products</h2>
-                  <span className="bg-dark-800 text-dark-400 text-xs px-2 py-0.5 rounded-full border border-dark-700">Total: {totalProducts}</span>
+                  <h2 className="text-xl font-heading font-bold text-[var(--text-primary)]">My Products</h2>
+                  <span className="badge badge-gray">Total: {totalProducts}</span>
                 </div>
                 <Link to="/seller/products/new" className="btn-primary btn-sm">
                   <Plus className="w-4 h-4" /> Add Product
@@ -262,8 +259,8 @@ export default function SellerDashboard() {
               
               {localProducts.length === 0 && !localProductsLoading ? (
                 <div className="card p-12 text-center">
-                  <Package className="w-12 h-12 text-dark-600 mx-auto mb-3" />
-                  <p className="text-dark-400">No products yet.</p>
+                  <Package className="w-12 h-12 text-[var(--text-subtle)] mx-auto mb-3" />
+                  <p className="text-[var(--text-muted)]">No products yet.</p>
                   <Link to="/seller/products/new" className="btn-primary mt-4 inline-flex">
                     <Plus className="w-4 h-4" /> Add Your First Product
                   </Link>
@@ -272,8 +269,8 @@ export default function SellerDashboard() {
                 <>
                   <div className="card overflow-hidden relative">
                     {localProductsLoading && (
-                      <div className="absolute inset-0 bg-dark-900/40 backdrop-blur-[1px] z-20 flex items-center justify-center">
-                        <Loader2 className="w-8 h-8 text-primary-400 animate-spin" />
+                      <div className="absolute inset-0 bg-black/30 backdrop-blur-[1px] z-20 flex items-center justify-center">
+                        <Loader2 className="w-8 h-8 text-primary-500 animate-spin" />
                       </div>
                     )}
                     <div className="overflow-x-auto">
@@ -290,48 +287,48 @@ export default function SellerDashboard() {
                             return (
                               <tr key={p.id} className="table-row">
                                 <td className="px-4 py-3">
-                                  <div className="w-10 h-10 rounded-lg bg-dark-800 border border-dark-750 flex items-center justify-center overflow-hidden shrink-0 p-1 shadow-sm">
+                                  <div className="w-10 h-10 rounded-lg bg-[var(--bg-surface-hover)] border border-[var(--border-color)] flex items-center justify-center overflow-hidden shrink-0 p-1 shadow-sm">
                                     {imageUrl ? (
-                                      <img src={imageUrl} alt={p.name} className="w-full h-full object-contain transition-transform hover:scale-125" />
+                                      <img src={imageUrl} alt={p.name} className="w-full h-full object-contain" />
                                     ) : (
-                                      <Package className="w-5 h-5 text-dark-500" />
+                                      <Package className="w-5 h-5 text-[var(--text-subtle)]" />
                                     )}
                                   </div>
                                 </td>
-                                <td className="px-4 py-3 font-medium text-white max-w-[200px] truncate" title={p.name}>{p.name}</td>
-                                <td className="px-4 py-3 text-dark-300 font-semibold">
+                                <td className="px-4 py-3 font-medium text-[var(--text-primary)] max-w-[200px] truncate" title={p.name}>{p.name}</td>
+                                <td className="px-4 py-3 text-[var(--text-muted)] font-semibold">
                                   {p.discount_price ? (
-                                    <div className="flex flex-col leading-tight mt-1">
-                                      <span>₹{parseFloat(p.effective_price).toLocaleString('en-IN')}</span>
-                                      <span className="text-[10px] text-dark-500 line-through">₹{parseFloat(p.price).toLocaleString('en-IN')}</span>
+                                    <div className="flex flex-col leading-tight">
+                                      <span className="text-[var(--text-primary)]">₹{parseFloat(p.effective_price).toLocaleString('en-IN')}</span>
+                                      <span className="text-[10px] text-[var(--text-subtle)] line-through">₹{parseFloat(p.price).toLocaleString('en-IN')}</span>
                                     </div>
                                   ) : (
-                                    <span>₹{parseFloat(p.price).toLocaleString('en-IN')}</span>
+                                    <span className="text-[var(--text-primary)]">₹{parseFloat(p.price).toLocaleString('en-IN')}</span>
                                   )}
                                 </td>
                                 <td className="px-4 py-3">
-                                  <span className={`font-mono px-2 py-0.5 rounded-md text-xs border ${p.stock === 0 ? 'text-danger border-red-950 bg-red-950/20' : p.stock <= 10 ? 'text-amber-400 border-amber-950 bg-amber-950/20' : 'text-green-400 border-green-950 bg-green-950/20'}`}>
+                                  <span className={`font-mono px-2 py-0.5 rounded-md text-xs border ${p.stock === 0 ? 'badge-danger' : p.stock <= 10 ? 'badge-warning' : 'badge-success'}`}>
                                     {p.stock}
                                   </span>
                                 </td>
-                                <td className="px-4 py-3 text-dark-400 truncate max-w-[140px]">{p.category_name}</td>
+                                <td className="px-4 py-3 text-[var(--text-muted)] truncate max-w-[140px]">{p.category_name}</td>
                                 <td className="px-4 py-3">
-                                  {p.approval_status === 'approved' && <CheckCircle className="w-4 h-4 text-green-400" title="Approved" />}
-                                  {p.approval_status === 'rejected' && <XCircle className="w-4 h-4 text-red-400" title="Rejected" />}
-                                  {p.approval_status === 'pending'  && <Clock className="w-4 h-4 text-amber-400" title="Pending Approval" />}
+                                  {p.approval_status === 'approved' && <CheckCircle className="w-4 h-4 text-emerald-500" title="Approved" />}
+                                  {p.approval_status === 'rejected' && <XCircle className="w-4 h-4 text-red-500" title="Rejected" />}
+                                  {p.approval_status === 'pending'  && <Clock className="w-4 h-4 text-amber-500" title="Pending Approval" />}
                                 </td>
                                 <td className="px-4 py-3">
-                                  {p.is_active ? <CheckCircle className="w-4 h-4 text-green-400" title="Active" /> : <X className="w-4 h-4 text-red-400" title="Inactive" />}
+                                  {p.is_active ? <CheckCircle className="w-4 h-4 text-emerald-500" title="Active" /> : <X className="w-4 h-4 text-red-500" title="Inactive" />}
                                 </td>
                                 <td className="px-4 py-3">
                                   <div className="flex items-center gap-1.5">
-                                    <button onClick={() => setViewProductModal(p.slug)} className="btn-ghost p-1.5 rounded-lg text-dark-400 hover:text-white hover:bg-dark-700" title="View Product">
+                                    <button onClick={() => setViewProductModal(p.slug)} className="btn-ghost p-1.5 rounded-lg text-[var(--text-muted)] hover:text-[var(--text-primary)]" title="View Product">
                                       <Eye className="w-4 h-4" />
                                     </button>
-                                    <Link to={`/seller/products/${p.id}/edit`} className="btn-ghost p-1.5 rounded-lg text-dark-400 hover:text-primary-400 hover:bg-dark-700" title="Edit Product">
-                                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+                                    <Link to={`/seller/products/${p.id}/edit`} className="btn-ghost p-1.5 rounded-lg text-[var(--text-muted)] hover:text-primary-500" title="Edit Product">
+                                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
                                     </Link>
-                                    <button onClick={() => handleDeleteProduct(p.id)} className="btn-ghost p-1.5 rounded-lg text-dark-400 hover:text-danger hover:bg-dark-700" title="Delete Product">
+                                    <button onClick={() => handleDeleteProduct(p.id)} className="btn-ghost p-1.5 rounded-lg text-[var(--text-muted)] hover:text-red-500" title="Delete Product">
                                       <Trash2 className="w-4 h-4" />
                                     </button>
                                   </div>
@@ -344,71 +341,25 @@ export default function SellerDashboard() {
                     </div>
                   </div>
 
-                  {/* Visual Pagination Controls */}
+                  {/* Pagination Controls */}
                   {totalPages > 1 && (
-                    <div className="flex items-center justify-between bg-dark-850 px-5 py-3.5 border border-dark-700 mt-4 rounded-xl shadow-lg animate-fade-in">
-                      <div className="flex flex-1 justify-between sm:hidden">
-                        <button 
-                          onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                          disabled={currentPage === 1}
-                          className="btn-secondary btn-sm"
-                        >
-                          Previous
-                        </button>
-                        <button 
-                          onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                          disabled={currentPage === totalPages}
-                          className="btn-secondary btn-sm ml-3"
-                        >
-                          Next
-                        </button>
-                      </div>
-                      <div className="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
-                        <div>
-                          <p className="text-xs text-dark-400">
-                            Showing <span className="font-bold text-white">{(currentPage - 1) * 12 + 1}</span> to <span className="font-bold text-white">{Math.min(currentPage * 12, totalProducts)}</span> of <span className="font-bold text-white">{totalProducts}</span> products
-                          </p>
-                        </div>
-                        <div>
-                          <nav className="isolate inline-flex rounded-md shadow-sm gap-1.5" aria-label="Pagination">
-                            <button
-                              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                              disabled={currentPage === 1}
-                              className="relative inline-flex items-center rounded-lg px-2.5 py-2 text-dark-400 border border-dark-700 bg-dark-800 hover:bg-dark-700 hover:text-white transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed active:scale-95"
-                            >
-                              <ChevronLeft className="h-4 w-4" />
+                    <div className="flex items-center justify-between card px-5 py-3.5 mt-4">
+                      <p className="text-xs text-[var(--text-muted)]">
+                        Showing <span className="font-bold text-[var(--text-primary)]">{(currentPage - 1) * 12 + 1}</span> to <span className="font-bold text-[var(--text-primary)]">{Math.min(currentPage * 12, totalProducts)}</span> of <span className="font-bold text-[var(--text-primary)]">{totalProducts}</span> products
+                      </p>
+                      <div className="flex items-center gap-1.5">
+                        <button onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))} disabled={currentPage === 1} className="btn-secondary btn-sm disabled:opacity-40"><ChevronLeft className="h-4 w-4" /></button>
+                        {[...Array(totalPages)].map((_, idx) => {
+                          const pNum = idx + 1;
+                          if (totalPages > 7 && Math.abs(pNum - currentPage) > 2 && pNum !== 1 && pNum !== totalPages) return null;
+                          return (
+                            <button key={pNum} onClick={() => setCurrentPage(pNum)}
+                              className={`w-8 h-8 rounded-lg text-xs font-bold transition-all border ${currentPage === pNum ? 'bg-primary-600 border-primary-500 text-white' : 'bg-[var(--bg-surface)] border-[var(--border-color)] text-[var(--text-muted)] hover:text-[var(--text-primary)]'}`}>
+                              {pNum}
                             </button>
-                            
-                            {[...Array(totalPages)].map((_, idx) => {
-                              const pNum = idx + 1;
-                              if (totalPages > 7 && Math.abs(pNum - currentPage) > 2 && pNum !== 1 && pNum !== totalPages) {
-                                if (Math.abs(pNum - currentPage) === 3) return <span key={pNum} className="text-dark-600 px-1 flex items-end pb-1">...</span>;
-                                return null;
-                              }
-                              
-                              return (
-                                <button
-                                  key={pNum}
-                                  onClick={() => setCurrentPage(pNum)}
-                                  className={`relative inline-flex items-center px-3.5 py-1.5 text-xs font-bold rounded-lg transition-all border cursor-pointer active:scale-95
-                                    ${currentPage === pNum 
-                                      ? 'bg-primary-600 border-primary-500 text-white shadow-glow z-10 scale-105' 
-                                      : 'text-dark-400 border-dark-700 bg-dark-800 hover:bg-dark-700 hover:text-white'}`}
-                                >
-                                  {pNum}
-                                </button>
-                              );
-                            })}
-
-                            <button
-                              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                              disabled={currentPage === totalPages}
-                              className="relative inline-flex items-center rounded-lg px-2.5 py-2 text-dark-400 border border-dark-700 bg-dark-800 hover:bg-dark-700 hover:text-white transition-all cursor-pointer disabled:opacity-40 disabled:cursor-not-allowed active:scale-95"
-                            >
-                              <ChevronRight className="h-4 w-4" />
-                            </button>
-                          </nav>
-                        </div>
+                          );
+                        })}
+                        <button onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))} disabled={currentPage === totalPages} className="btn-secondary btn-sm disabled:opacity-40"><ChevronRight className="h-4 w-4" /></button>
                       </div>
                     </div>
                   )}
@@ -420,9 +371,8 @@ export default function SellerDashboard() {
           {tab === 'categories' && (
             <div className="space-y-5 animate-fade-in">
               <div className="flex items-center justify-between">
-                <h2 className="text-xl font-heading font-bold text-white">Categories</h2>
+                <h2 className="text-xl font-heading font-bold text-[var(--text-primary)]">Categories</h2>
                 <button onClick={() => { setCatModalMode('category'); setIsCatModalOpen(true); }} className="btn-primary btn-sm"><Plus className="w-4 h-4" /> Create Category</button>
-
               </div>
               <div className="card overflow-hidden">
                 <div className="overflow-x-auto">
@@ -436,16 +386,16 @@ export default function SellerDashboard() {
                       {categories.filter(c => !c.parent).map(c => (
                         <tr key={c.id} className="table-row">
                           <td className="px-4 py-3">
-                            <div className="w-10 h-10 rounded-lg bg-dark-800 border border-dark-750 overflow-hidden flex items-center justify-center p-1">
+                            <div className="w-10 h-10 rounded-lg bg-[var(--bg-surface-hover)] border border-[var(--border-color)] overflow-hidden flex items-center justify-center p-1">
                               {c.image ? (
                                 <img src={c.image.startsWith('http') ? c.image : `${API_BASE}${c.image}`} alt="" className="w-full h-full object-contain" />
                               ) : (
-                                <Package className="w-5 h-5 text-dark-600" />
+                                <Package className="w-5 h-5 text-[var(--text-subtle)]" />
                               )}
                             </div>
                           </td>
-                          <td className="px-4 py-3 font-medium text-white">{c.name}</td>
-                          <td className="px-4 py-3 text-dark-400">{c.product_count || 0}</td>
+                          <td className="px-4 py-3 font-medium text-[var(--text-primary)]">{c.name}</td>
+                          <td className="px-4 py-3 text-[var(--text-muted)]">{c.product_count || 0}</td>
                         </tr>
                       ))}
                     </tbody>
@@ -458,9 +408,8 @@ export default function SellerDashboard() {
           {tab === 'subcategories' && (
             <div className="space-y-5 animate-fade-in">
               <div className="flex items-center justify-between">
-                <h2 className="text-xl font-heading font-bold text-white">Subcategories</h2>
+                <h2 className="text-xl font-heading font-bold text-[var(--text-primary)]">Subcategories</h2>
                 <button onClick={() => { setCatModalMode('subcategory'); setIsCatModalOpen(true); }} className="btn-primary btn-sm"><Plus className="w-4 h-4" /> Create Subcategory</button>
-
               </div>
               <div className="card overflow-hidden">
                 <div className="overflow-x-auto">
@@ -476,19 +425,19 @@ export default function SellerDashboard() {
                         return (
                           <tr key={c.id} className="table-row">
                             <td className="px-4 py-3">
-                              <div className="w-8 h-8 rounded-lg bg-dark-800 border border-dark-750 overflow-hidden flex items-center justify-center p-1">
+                              <div className="w-8 h-8 rounded-lg bg-[var(--bg-surface-hover)] border border-[var(--border-color)] overflow-hidden flex items-center justify-center p-1">
                                 {c.image ? (
                                   <img src={c.image.startsWith('http') ? c.image : `${API_BASE}${c.image}`} alt="" className="w-full h-full object-contain" />
                                 ) : (
-                                  <Layers className="w-4 h-4 text-dark-600" />
+                                  <Layers className="w-4 h-4 text-[var(--text-subtle)]" />
                                 )}
                               </div>
                             </td>
-                            <td className="px-4 py-3 font-medium text-white">{c.name}</td>
-                            <td className="px-4 py-3 text-primary-300">
+                            <td className="px-4 py-3 font-medium text-[var(--text-primary)]">{c.name}</td>
+                            <td className="px-4 py-3 text-primary-500 font-medium">
                                {parent ? parent.name : '-'}
                             </td>
-                            <td className="px-4 py-3 text-dark-400">{c.product_count || 0}</td>
+                            <td className="px-4 py-3 text-[var(--text-muted)]">{c.product_count || 0}</td>
                           </tr>
                         );
                       })}
@@ -502,11 +451,11 @@ export default function SellerDashboard() {
           {/* ── Orders ── */}
           {tab === 'orders' && (
             <div className="space-y-5 animate-fade-in">
-              <h2 className="text-xl font-heading font-bold text-white">My Orders</h2>
+              <h2 className="text-xl font-heading font-bold text-[var(--text-primary)]">My Orders</h2>
               {orders.length === 0 ? (
                 <div className="card p-12 text-center">
-                  <ShoppingBag className="w-12 h-12 text-dark-600 mx-auto mb-3" />
-                  <p className="text-dark-400">No orders yet. Share your products to get your first sale!</p>
+                  <ShoppingBag className="w-12 h-12 text-[var(--text-subtle)] mx-auto mb-3" />
+                  <p className="text-[var(--text-muted)]">No orders yet. Share your products to get your first sale!</p>
                 </div>
               ) : (
                 <div className="card overflow-hidden">
@@ -520,12 +469,12 @@ export default function SellerDashboard() {
                       <tbody>
                         {orders.map(o => (
                           <tr key={o.id} className="table-row">
-                            <td className="px-4 py-3 font-mono text-primary-400 text-xs">#{o.order_number}</td>
-                            <td className="px-4 py-3 text-dark-300 max-w-[160px] truncate">{o.user_email}</td>
-                            <td className="px-4 py-3 font-semibold text-white">₹{parseFloat(o.total_price).toLocaleString('en-IN')}</td>
+                            <td className="px-4 py-3 font-mono text-primary-500 text-xs font-semibold">#{o.order_number}</td>
+                            <td className="px-4 py-3 text-[var(--text-muted)] max-w-[160px] truncate">{o.user_email}</td>
+                            <td className="px-4 py-3 font-semibold text-[var(--text-primary)]">₹{parseFloat(o.total_price).toLocaleString('en-IN')}</td>
                             <td className="px-4 py-3"><span className={`status-${o.payment_status}`}>{o.payment_status}</span></td>
                             <td className="px-4 py-3"><span className={`status-${o.order_status}`}>{o.order_status}</span></td>
-                            <td className="px-4 py-3 text-dark-400 text-xs">{new Date(o.created_at).toLocaleDateString('en-IN')}</td>
+                            <td className="px-4 py-3 text-[var(--text-subtle)] text-xs">{new Date(o.created_at).toLocaleDateString('en-IN')}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -538,10 +487,10 @@ export default function SellerDashboard() {
 
         </main>
 
-        <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-dark-800 border-t border-dark-700 flex z-40">
+        <div className="lg:hidden fixed bottom-0 left-0 right-0 bg-[var(--bg-surface)] border-t border-[var(--border-color)] flex z-40">
           {TABS.map(({ id, label, icon: Icon }) => (
             <button key={id} onClick={() => setTab(id)}
-              className={`flex-1 flex flex-col items-center py-3 text-xs font-medium transition-colors ${tab === id ? 'text-primary-400 bg-primary-900/10' : 'text-dark-500'}`}>
+              className={`flex-1 flex flex-col items-center py-3 text-xs font-medium transition-colors ${tab === id ? 'text-primary-500 font-semibold' : 'text-[var(--text-muted)]'}`}>
               <Icon className="w-5 h-5 mb-1" />{label}
             </button>
           ))}

@@ -69,7 +69,7 @@ class ProductListView(generics.ListCreateAPIView):
     filter_backends = [DjangoFilterBackend, filters.SearchFilter, filters.OrderingFilter]
     filterset_class = ProductFilter
     search_fields = ['name', 'description', 'tags', 'category__name']
-    ordering_fields = ['price', 'created_at', 'name', 'average_rating']
+    ordering_fields = ['price', 'effective_price', 'created_at', 'name', 'average_rating']
     ordering = ['-created_at']
 
     def get_serializer_class(self):
@@ -84,6 +84,18 @@ class ProductListView(generics.ListCreateAPIView):
         else:
             serializer.save()
 
+    def filter_queryset(self, queryset):
+        # Map ordering from price/ -price to effective_price/ -effective_price
+        ordering = self.request.query_params.get('ordering', '')
+        if ordering == 'price':
+            self.request.GET = self.request.GET.copy()
+            self.request.GET['ordering'] = 'effective_price'
+        elif ordering == '-price':
+            self.request.GET = self.request.GET.copy()
+            self.request.GET['ordering'] = '-effective_price'
+            
+        return super().filter_queryset(queryset)
+
     def get_queryset(self):
         tenant = getattr(self.request, 'tenant', None)
         qs = Product.objects.filter(is_active=True).select_related('category').prefetch_related('images', 'reviews')
@@ -95,6 +107,12 @@ class ProductListView(generics.ListCreateAPIView):
         # Non-admins can only see products that are active AND explicitly approved
         if not (self.request.user.is_authenticated and self.request.user.is_admin):
             qs = qs.filter(is_active=True, approval_status='approved')
+            
+        from django.db.models import F, Value, DecimalField
+        from django.db.models.functions import Coalesce
+        qs = qs.annotate(
+            effective_price=F('price') - Coalesce('discount_price', Value(0, output_field=DecimalField()))
+        )
         return qs
 
 

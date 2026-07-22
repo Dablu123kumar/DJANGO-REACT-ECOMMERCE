@@ -70,6 +70,7 @@ class Product(TenantAwareModel):
     stock = models.PositiveIntegerField(default=0)
     sku = models.CharField(max_length=100, blank=True)
     tags = models.CharField(max_length=500, blank=True)
+    sizes = models.CharField(max_length=255, blank=True, null=True, help_text="Comma-separated sizes")
     is_active = models.BooleanField(default=True)
     is_featured = models.BooleanField(default=False)
     approval_status = models.CharField(max_length=10, choices=APPROVAL_CHOICES, default='pending')
@@ -85,6 +86,14 @@ class Product(TenantAwareModel):
         ]
 
     def save(self, *args, **kwargs):
+        if self.sizes:
+            # Normalize to ,size1,size2, format for robust database filtering
+            parts = [p.strip() for p in self.sizes.split(',') if p.strip()]
+            if parts:
+                self.sizes = ',' + ','.join(parts) + ','
+            else:
+                self.sizes = ''
+
         if not self.slug:
             from django.utils.text import slugify
             base_slug = slugify(self.name)
@@ -103,9 +112,15 @@ class Product(TenantAwareModel):
 
     @property
     def effective_price(self):
+        if hasattr(self, '_effective_price'):
+            return self._effective_price
         if self.discount_price:
             return max(self.price - self.discount_price, 0)
         return self.price
+
+    @effective_price.setter
+    def effective_price(self, value):
+        self._effective_price = value
 
     @property
     def discount_percentage(self):
